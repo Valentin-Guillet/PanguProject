@@ -11,6 +11,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
+- use Card for projects
 - make sections scrollable
 - long press on card -> show info
 - undo button ?
@@ -21,28 +22,19 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PanguProjectTheme {
-                val navController = rememberNavController()
-                NavHost(navController, startDestination = "menu") {
-                    composable("menu") { MenuPage(navController) }
-                    composable("game") { GamePage(navController) }
-                }
-            }
+            PanguProjectApp()
         }
     }
 }
 
 @Preview(device = "id:S9+")
-//@Preview
 @Composable
-fun DefaultPreview() {
+fun PanguProjectApp() {
     PanguProjectTheme {
-//        val navController = rememberNavController()
-//        NavHost(navController, startDestination = "menu") {
-//            composable("menu") { MenuPage(navController) }
-//            composable("game") { GamePage(navController) }
-//        }
-//        MenuPage(rememberNavController())
-        GamePage(rememberNavController())
+        val navController = rememberNavController()
+        NavHost(navController, startDestination = "menu") {
+            composable("menu") { MenuScreen(navController) }
+            composable("game") { GameScreen(navController) }
+        }
     }
 }

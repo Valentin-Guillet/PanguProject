@@ -17,11 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun MenuPage(navController: NavController) {
+fun MenuScreen(navController: NavController?) {
     val activity = LocalContext.current as? Activity
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -40,7 +41,7 @@ fun MenuPage(navController: NavController) {
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(66.dp))
-            Button(onClick = { navController.navigate("game") }) {
+            Button(onClick = { navController?.navigate("game") }) {
                 Text(stringResource(id = R.string.play))
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -51,4 +52,10 @@ fun MenuPage(navController: NavController) {
             }
         }
     }
+}
+
+@Preview(device = "id:S9+")
+@Composable
+fun MenuScreenPreview() {
+    MenuScreen(null)
 }

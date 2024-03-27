@@ -16,6 +16,7 @@ import com.example.panguproject.ui.theme.PanguProjectTheme
 - long press on card -> show info
 - undo button ?
 - dark mode
+- log line that displays when error on buy
 */
 
 class MainActivity : ComponentActivity() {
@@ -30,11 +31,12 @@ class MainActivity : ComponentActivity() {
 @Preview(device = "id:S9+")
 @Composable
 fun PanguProjectApp() {
-    PanguProjectTheme {
-        val navController = rememberNavController()
-        NavHost(navController, startDestination = "menu") {
-            composable("menu") { MenuScreen(navController) }
-            composable("game") { GameScreen(navController) }
-        }
-    }
+//    PanguProjectTheme {
+//        val navController = rememberNavController()
+//        NavHost(navController, startDestination = "menu") {
+//            composable("menu") { MenuScreen(navController) }
+//            composable("game") { GameScreen(navController) }
+//        }
+//    }
+    GameScreen(null)
 }

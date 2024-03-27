@@ -1,8 +1,11 @@
 package com.example.panguproject
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,16 +26,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.panguproject.ui.theme.BaseDiceColor
+import com.example.panguproject.ui.theme.FixedDiceColor
+import com.example.panguproject.ui.theme.SelectedDiceBorderColor
+import com.example.panguproject.ui.theme.WildDiceColor
 
 @Composable
 fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = viewModel()) {
@@ -52,7 +61,11 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             GameProjectSection(game, modifier = Modifier.weight(0.8f))
             GameBuildingSection(game, modifier = Modifier.weight(2f))
             GameBlueprintSection(game, modifier = Modifier.weight(2f))
-            GameResourceSection(game, onDiceClick = { gameViewModel.selectDice(it) }, modifier = Modifier.weight(1.5f))
+            GameResourceSection(
+                game,
+                onDiceClick = { dice, selectOnly ->  gameViewModel.selectDice(dice, selectOnly) },
+                modifier = Modifier.weight(1.5f)
+            )
             GameActionSection(game, { gameViewModel.nextTurn() })
         }
     }
@@ -108,23 +121,22 @@ fun GameBlueprintSection(game: Game, modifier: Modifier = Modifier) {
 @Composable
 fun GameResourceSection(
     game: Game,
-    onDiceClick: (Dice) -> Unit,
+    onDiceClick: (Dice, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        val (diceListBasic, diceListFixed) = game.diceList.partition { !it.fixed }
+        val (turnDiceList, storedDiceList) = game.diceList.partition { !it.stored }
         DiceStorage(
-            diceList = diceListBasic,
+            diceList = turnDiceList,
             onDiceClick = onDiceClick,
             name = "Resources",
             modifier = Modifier.weight(3f),
         )
         DiceStorage(
-            diceList = diceListFixed,
+            diceList = storedDiceList,
             onDiceClick = onDiceClick,
             name = "Storage",
             modifier = Modifier.weight(2f),
@@ -151,12 +163,32 @@ fun GameActionSection(
         Button(onClick = {}) {
             Text("-")
         }
+        DisplayModIndicator(game.mod)
         Button(onClick = {}) {
             Text("+")
         }
         Button(onClick = onNextTurn) {
             Text("End Turn")
         }
+    }
+}
+
+@Composable
+fun DisplayModIndicator(nbMod: Int, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+    ) {
+        Text(
+            text = "$nbMod",
+            fontSize = 18.sp,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        Text(
+            text = "Mod",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
     }
 }
 
@@ -189,15 +221,32 @@ fun DisplaySection(
 
 const val DICE_SIZE: Int = 32
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DisplayDice(dice: Dice, onDiceClick: (Dice) -> Unit) {
-    val color = if (dice.selected) Color.Black else Color.LightGray
+fun DisplayDice(
+    dice: Dice,
+    onDiceClick: (Dice, Boolean) -> Unit,
+) {
+    val diceColor: Color = if (dice.fixed) {
+        FixedDiceColor
+    } else if (dice.wild) {
+        WildDiceColor
+    } else {
+        BaseDiceColor
+    }
+    val borderColor = if (dice.selected) SelectedDiceBorderColor else diceColor
+    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(DICE_SIZE.dp)
-            .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-            .border(2.dp, color, shape = RoundedCornerShape(8.dp))
-            .clickable(onClick = { onDiceClick(dice) }),
+            .background(diceColor, shape = RoundedCornerShape(8.dp))
+            .border(2.dp, borderColor, shape = RoundedCornerShape(8.dp))
+            .combinedClickable (
+                onClick = { onDiceClick(dice, false) },
+                onLongClick = { onDiceClick(dice, true) },
+                interactionSource = interactionSource,
+                indication = null
+            ),
     ) {
         Text(
             text = dice.value.toString(),
@@ -209,7 +258,7 @@ fun DisplayDice(dice: Dice, onDiceClick: (Dice) -> Unit) {
 @Composable
 fun DiceStorage(
     diceList: List<Dice>,
-    onDiceClick: (Dice) -> Unit,
+    onDiceClick: (Dice, Boolean) -> Unit,
     name: String,
     modifier: Modifier = Modifier,
 ) {

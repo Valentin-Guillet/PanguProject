@@ -22,12 +22,12 @@ class GameViewModel : ViewModel() {
         _game.value.newTurn()
     }
 
-    fun selectDice(dice: Dice) {
+    fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
         val gameCopy = _game.value.copy()
-        val diceIndex = gameCopy.diceList.indexOfFirst { it == dice }
-        if (diceIndex != -1) {
-            gameCopy.diceList[diceIndex] = dice.copy(selected = !dice.selected)
-            _game.value = gameCopy
-        }
+        if (selectOnly)
+            gameCopy.diceList.forEach { it.selected = false }
+        val diceIndex = gameCopy.diceList.indexOf(clickedDice)
+        gameCopy.diceList[diceIndex] = clickedDice.copy(selected = !clickedDice.selected)
+        _game.value = gameCopy
     }
 }

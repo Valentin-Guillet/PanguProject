@@ -22,15 +22,17 @@ class Game(
     var turn: Int = 0,
     var diceList: MutableList<Dice> = mutableListOf(),
     var mod: Int = 0,
+    var nbRerolls: Int = 0,
 ) {
     fun copy(): Game {
-        return Game(turn, diceList.toMutableList(), mod)
+        return Game(turn, diceList.toMutableList(), mod, nbRerolls)
     }
 
     fun newTurn() {
         turn++
         val nbDice: Int = computeNbDice()
         diceList = List(nbDice) { Dice((1..6).random()) }.toMutableList()
+        nbRerolls = 2
     }
 
     private fun computeNbDice(): Int {

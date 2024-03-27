@@ -3,7 +3,6 @@ package com.example.panguproject
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -56,24 +55,30 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 .padding(horizontal = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            GameInfoSection(game)
+            GameInfoSection(game.turn)
             Spacer(modifier = Modifier.height(4.dp))
             GameProjectSection(game, modifier = Modifier.weight(0.8f))
             GameBuildingSection(game, modifier = Modifier.weight(2f))
             GameBlueprintSection(game, modifier = Modifier.weight(2f))
             GameResourceSection(
                 game,
-                onDiceClick = { dice, selectOnly ->  gameViewModel.selectDice(dice, selectOnly) },
+                onDiceClick = { dice, selectOnly -> gameViewModel.selectDice(dice, selectOnly) },
                 modifier = Modifier.weight(1.5f)
             )
-            GameActionSection(game, { gameViewModel.nextTurn() })
+            GameActionSection(
+                game,
+                onReroll = { gameViewModel.reroll() },
+                onModMinus = { gameViewModel.modMinus() },
+                onModPlus = { gameViewModel.modPlus() },
+                onEndTurn = { gameViewModel.nextTurn() }
+            )
         }
     }
 }
 
 @Composable
-fun GameInfoSection(game: Game, modifier: Modifier = Modifier) {
-    val turn: Int = game.turn
+fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
+    println("Game Info recomposed")
 
     Row(
         modifier = modifier
@@ -147,7 +152,10 @@ fun GameResourceSection(
 @Composable
 fun GameActionSection(
     game: Game,
-    onNextTurn: () -> Unit,
+    onReroll: () -> Unit,
+    onModMinus: () -> Unit,
+    onModPlus: () -> Unit,
+    onEndTurn: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -157,17 +165,17 @@ fun GameActionSection(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.Bottom,
     ) {
-        Button(onClick = {}) {
-            Text("Reroll (2)")
+        Button(onClick = onReroll, enabled = game.nbRerolls > 0) {
+            Text("Reroll (${game.nbRerolls})")
         }
-        Button(onClick = {}) {
+        Button(onClick = onModMinus) {
             Text("-")
         }
         DisplayModIndicator(game.mod)
-        Button(onClick = {}) {
+        Button(onClick = onModPlus) {
             Text("+")
         }
-        Button(onClick = onNextTurn) {
+        Button(onClick = onEndTurn) {
             Text("End Turn")
         }
     }
@@ -241,7 +249,7 @@ fun DisplayDice(
             .size(DICE_SIZE.dp)
             .background(diceColor, shape = RoundedCornerShape(8.dp))
             .border(2.dp, borderColor, shape = RoundedCornerShape(8.dp))
-            .combinedClickable (
+            .combinedClickable(
                 onClick = { onDiceClick(dice, false) },
                 onLongClick = { onDiceClick(dice, true) },
                 interactionSource = interactionSource,

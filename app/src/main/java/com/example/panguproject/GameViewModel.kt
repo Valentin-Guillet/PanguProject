@@ -23,11 +23,31 @@ class GameViewModel : ViewModel() {
     }
 
     fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
+        clickedDice.selected = !clickedDice.selected
+        _game.value = _game.value.copy()
+    }
+
+    fun reroll() {
+        if (getSelectedDice().isEmpty()) return
+
+        for (dice in _game.value.diceList) {
+            if (dice.selected) dice.value = (1..6).random()
+        }
+        _game.value.nbRerolls--
+        _game.value = _game.value.copy()
+    }
+
+    fun modMinus() {
         val gameCopy = _game.value.copy()
-        if (selectOnly)
-            gameCopy.diceList.forEach { it.selected = false }
-        val diceIndex = gameCopy.diceList.indexOf(clickedDice)
-        gameCopy.diceList[diceIndex] = clickedDice.copy(selected = !clickedDice.selected)
+        gameCopy.mod--
         _game.value = gameCopy
     }
+
+    fun modPlus() {
+        val gameCopy = _game.value.copy()
+        gameCopy.mod++
+        _game.value = gameCopy
+    }
+
+    private fun getSelectedDice(): List<Dice> = _game.value.diceList.filter { it.selected }
 }

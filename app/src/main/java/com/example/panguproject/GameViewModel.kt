@@ -6,48 +6,64 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class GameViewModel : ViewModel() {
-    private val _game = MutableStateFlow(Game())
-    val game: StateFlow<Game> = _game.asStateFlow()
+    private val _turn = MutableStateFlow(0)
+    val turn: StateFlow<Int> = _turn.asStateFlow()
+
+    private val _diceList = MutableStateFlow(mutableListOf<Dice>())
+    val diceList: StateFlow<List<Dice>> = _diceList.asStateFlow()
+
+    private val _nbRerolls = MutableStateFlow(2)
+    val nbRerolls: StateFlow<Int> = _nbRerolls.asStateFlow()
+
+    private val _nbMod = MutableStateFlow(0)
+    val nbMod: StateFlow<Int> = _nbMod.asStateFlow()
 
     init {
         resetGame()
     }
 
     fun resetGame() {
-        _game.value = Game()
-        _game.value.newTurn()
+        _turn.value = 0
+        nextTurn()
     }
 
     fun nextTurn() {
-        _game.value.newTurn()
+        _turn.value++
+        _nbRerolls.value = 2
+        createAndRollDice()
     }
 
     fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
-        clickedDice.selected = !clickedDice.selected
-        _game.value = _game.value.copy()
+        val newDiceList = _diceList.value.toMutableList()
+        if (selectOnly)
+            newDiceList.forEach { it.selected = false }
+        val diceIndex: Int = newDiceList.indexOf(clickedDice)
+        newDiceList[diceIndex] = clickedDice.copy(selected = !clickedDice.selected)
+        _diceList.value = newDiceList.toMutableList()
     }
 
     fun reroll() {
-        if (getSelectedDice().isEmpty()) return
+        if (_diceList.value.none { it.selected }) return
 
-        for (dice in _game.value.diceList) {
-            if (dice.selected) dice.value = (1..6).random()
-        }
-        _game.value.nbRerolls--
-        _game.value = _game.value.copy()
+        val newDiceList = _diceList.value.toMutableList()
+        newDiceList.forEach { if (it.selected) it.value = (1..6).random() }
+        _diceList.value = newDiceList
+
+        _nbRerolls.value--
     }
 
     fun modMinus() {
-        val gameCopy = _game.value.copy()
-        gameCopy.mod--
-        _game.value = gameCopy
+        _nbMod.value--
     }
 
     fun modPlus() {
-        val gameCopy = _game.value.copy()
-        gameCopy.mod++
-        _game.value = gameCopy
+        _nbMod.value++
     }
 
-    private fun getSelectedDice(): List<Dice> = _game.value.diceList.filter { it.selected }
+    private fun createAndRollDice() {
+        val newDiceList = _diceList.value.filter { it.stored }.toMutableList()
+        repeat(4) { newDiceList.add(Dice((1..6).random())) }
+
+        _diceList.value = newDiceList
+    }
 }

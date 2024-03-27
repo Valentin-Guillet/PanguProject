@@ -44,7 +44,10 @@ import com.example.panguproject.ui.theme.WildDiceColor
 
 @Composable
 fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = viewModel()) {
-    val game: Game by gameViewModel.game.collectAsState()
+    val turn: Int by gameViewModel.turn.collectAsState()
+    val diceList: List<Dice> by gameViewModel.diceList.collectAsState()
+    val nbRerolls: Int by gameViewModel.nbRerolls.collectAsState()
+    val nbMod: Int by gameViewModel.nbMod.collectAsState()
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -55,22 +58,23 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 .padding(horizontal = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            GameInfoSection(game.turn)
+            GameInfoSection(turn)
             Spacer(modifier = Modifier.height(4.dp))
-            GameProjectSection(game, modifier = Modifier.weight(0.8f))
-            GameBuildingSection(game, modifier = Modifier.weight(2f))
-            GameBlueprintSection(game, modifier = Modifier.weight(2f))
+            GameProjectSection(modifier = Modifier.weight(0.8f))
+            GameBuildingSection(modifier = Modifier.weight(2f))
+            GameBlueprintSection(modifier = Modifier.weight(2f))
             GameResourceSection(
-                game,
-                onDiceClick = { dice, selectOnly -> gameViewModel.selectDice(dice, selectOnly) },
+                diceList,
+                onDiceClick = gameViewModel::selectDice,
                 modifier = Modifier.weight(1.5f)
             )
             GameActionSection(
-                game,
-                onReroll = { gameViewModel.reroll() },
-                onModMinus = { gameViewModel.modMinus() },
-                onModPlus = { gameViewModel.modPlus() },
-                onEndTurn = { gameViewModel.nextTurn() }
+                nbRerolls = nbRerolls,
+                nbMod = nbMod,
+                onReroll = gameViewModel::reroll,
+                onModMinus = gameViewModel::modMinus,
+                onModPlus = gameViewModel::modPlus,
+                onEndTurn = gameViewModel::nextTurn,
             )
         }
     }
@@ -78,7 +82,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
 
 @Composable
 fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
-    println("Game Info recomposed")
+    println("Recomposing GameInfoSection")
 
     Row(
         modifier = modifier
@@ -94,7 +98,7 @@ fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun GameProjectSection(game: Game, modifier: Modifier = Modifier) {
+fun GameProjectSection(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -114,26 +118,27 @@ fun GameProjectSection(game: Game, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun GameBuildingSection(game: Game, modifier: Modifier = Modifier) {
+fun GameBuildingSection(modifier: Modifier = Modifier) {
     DisplaySection(name = "Colony", modifier = modifier) { }
 }
 
 @Composable
-fun GameBlueprintSection(game: Game, modifier: Modifier = Modifier) {
+fun GameBlueprintSection(modifier: Modifier = Modifier) {
     DisplaySection(name = "Blueprints", modifier = modifier) { }
 }
 
 @Composable
 fun GameResourceSection(
-    game: Game,
+    diceList: List<Dice>,
     onDiceClick: (Dice, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    println("Recomposing GameResourceSection")
     Row(
         modifier = modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        val (turnDiceList, storedDiceList) = game.diceList.partition { !it.stored }
+        val (turnDiceList, storedDiceList) = diceList.partition { !it.stored }
         DiceStorage(
             diceList = turnDiceList,
             onDiceClick = onDiceClick,
@@ -151,13 +156,16 @@ fun GameResourceSection(
 
 @Composable
 fun GameActionSection(
-    game: Game,
+    nbRerolls: Int,
+    nbMod: Int,
     onReroll: () -> Unit,
     onModMinus: () -> Unit,
     onModPlus: () -> Unit,
     onEndTurn: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    println("Recomposing GameActionSection")
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -165,13 +173,13 @@ fun GameActionSection(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.Bottom,
     ) {
-        Button(onClick = onReroll, enabled = game.nbRerolls > 0) {
-            Text("Reroll (${game.nbRerolls})")
+        Button(onClick = onReroll, enabled = nbRerolls > 0) {
+            Text("Reroll (${nbRerolls})")
         }
         Button(onClick = onModMinus) {
             Text("-")
         }
-        DisplayModIndicator(game.mod)
+        DisplayModIndicator(nbMod)
         Button(onClick = onModPlus) {
             Text("+")
         }

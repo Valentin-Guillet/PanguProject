@@ -82,8 +82,6 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
 
 @Composable
 fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
-    println("Recomposing GameInfoSection")
-
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -99,11 +97,7 @@ fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
 
 @Composable
 fun GameProjectSection(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .border(4.dp, Color.Gray, shape = RoundedCornerShape(16.dp))
-    ) {
+    DisplaySection(name = null, modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
@@ -133,7 +127,6 @@ fun GameResourceSection(
     onDiceClick: (Dice, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    println("Recomposing GameResourceSection")
     Row(
         modifier = modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -164,8 +157,6 @@ fun GameActionSection(
     onEndTurn: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    println("Recomposing GameActionSection")
-
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -211,7 +202,7 @@ fun DisplayModIndicator(nbMod: Int, modifier: Modifier = Modifier) {
 
 @Composable
 fun DisplaySection(
-    name: String,
+    name: String?,
     modifier: Modifier = Modifier,
     content: @Composable BoxWithConstraintsScope.() -> Unit,
 ) {
@@ -222,16 +213,18 @@ fun DisplaySection(
     ) {
         content()
 
-        Text(
-            name,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(bottom = 4.dp, end = 10.dp)
-                .zIndex(-1f),
-            fontStyle = FontStyle.Italic,
-            fontSize = 18.sp,
-            color = Color.Red.copy(alpha = 0.7f),
-        )
+        if (!name.isNullOrEmpty()) {
+            Text(
+                name,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 4.dp, end = 10.dp)
+                    .zIndex(-1f),
+                fontStyle = FontStyle.Italic,
+                fontSize = 18.sp,
+                color = Color.Red.copy(alpha = 0.7f),
+            )
+        }
     }
 }
 

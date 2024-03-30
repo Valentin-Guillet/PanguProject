@@ -39,7 +39,7 @@ class GameViewModel : ViewModel() {
             newDiceList.forEach { it.selected = false }
         val diceIndex: Int = newDiceList.indexOf(clickedDice)
         newDiceList[diceIndex] = clickedDice.copy(selected = !clickedDice.selected)
-        _diceList.value = newDiceList.toMutableList()
+        _diceList.value = newDiceList
     }
 
     fun reroll() {

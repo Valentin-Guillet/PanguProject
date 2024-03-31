@@ -31,12 +31,12 @@ class MainActivity : ComponentActivity() {
 @Preview(device = "id:S9+")
 @Composable
 fun PanguProjectApp() {
-//    PanguProjectTheme {
+    PanguProjectTheme {
 //        val navController = rememberNavController()
 //        NavHost(navController, startDestination = "menu") {
 //            composable("menu") { MenuScreen(navController) }
 //            composable("game") { GameScreen(navController) }
 //        }
-//    }
-    GameScreen(null)
+        GameScreen(null)
+    }
 }

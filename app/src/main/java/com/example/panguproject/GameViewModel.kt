@@ -18,11 +18,30 @@ class GameViewModel : ViewModel() {
     private val _nbMod = MutableStateFlow(0)
     val nbMod: StateFlow<Int> = _nbMod.asStateFlow()
 
+    private val _blueprintList = MutableStateFlow(mutableListOf<Blueprint>())
+    val blueprintList: StateFlow<List<Blueprint>> = _blueprintList.asStateFlow()
+
+    private val _buildingList = MutableStateFlow(mutableListOf<Blueprint>())
+    val buildingList: StateFlow<List<Blueprint>> = _buildingList.asStateFlow()
+
+    private lateinit var remainingBlueprints : List<Blueprint>
+    private var blueprintIndex : Int = listAllBlueprints.size
+
+    private val initNbBlueprints = 4
+
+
     init {
         resetGame()
     }
 
     fun resetGame() {
+        _buildingList.value.clear()
+        for (building in listDefaultBuildings)
+            _buildingList.value.add(building)
+
+        _blueprintList.value.clear()
+        repeat(initNbBlueprints) { _blueprintList.value.add(getNextBlueprint()) }
+
         _turn.value = 0
         nextTurn()
     }
@@ -30,7 +49,20 @@ class GameViewModel : ViewModel() {
     fun nextTurn() {
         _turn.value++
         _nbRerolls.value = 2
-        createAndRollDice()
+
+        val newDiceList = _diceList.value.filter { it.stored }.toMutableList()
+        _diceList.value = newDiceList
+
+        repeat(4) { rollDice() }
+
+        val newBuildingList = _buildingList.value.toMutableList().map { it.copy(used = false) }
+        _buildingList.value = newBuildingList.toMutableList()
+
+        for (building in _buildingList.value) {
+            if (building.canApply(this)) {
+                building.startTurn?.invoke(this)
+            }
+        }
     }
 
     fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
@@ -60,10 +92,55 @@ class GameViewModel : ViewModel() {
         _nbMod.value++
     }
 
-    private fun createAndRollDice() {
-        val newDiceList = _diceList.value.filter { it.stored }.toMutableList()
-        repeat(4) { newDiceList.add(Dice((1..6).random())) }
+    fun drawBlueprint() {
+        val newBlueprintList = _blueprintList.value.toMutableList()
+        newBlueprintList.add(getNextBlueprint())
+        _blueprintList.value = newBlueprintList
+    }
 
-        _diceList.value = newDiceList
+    fun buyBlueprint(blueprint: Blueprint) {
+        val selectedDice = getSelectedDice()
+        if (!blueprint.costFunction?.invoke(selectedDice)!!)
+            return
+
+        val newBuildingList = _buildingList.value.toMutableList()
+        newBuildingList.add(blueprint)
+        _buildingList.value = newBuildingList.toMutableList()
+
+        val newBlueprintList = _blueprintList.value.toMutableList()
+        newBlueprintList.remove(blueprint)
+        _blueprintList.value = newBlueprintList.toMutableList()
+    }
+
+    fun useBuilding(blueprint: Blueprint) {
+        if (!blueprint.canApply(this))
+            return
+
+        blueprint.click?.invoke(this)
+
+        val newBuildingList = _buildingList.value.toMutableList()
+        val buildingIndex: Int = newBuildingList.indexOf(blueprint)
+        newBuildingList[buildingIndex] = blueprint.copy(used = true)
+        _buildingList.value = newBuildingList
+    }
+
+    private fun getNextBlueprint(): Blueprint {
+        if (blueprintIndex == listAllBlueprints.size) {
+            remainingBlueprints = listAllBlueprints.shuffled()
+            blueprintIndex = 0
+        }
+        return remainingBlueprints[blueprintIndex++]
+    }
+
+    private fun rollDice(
+        wild: Boolean = false,
+        fixed: Boolean = false,
+        stored: Boolean = false,
+    ) {
+        _diceList.value.add(Dice((1..6).random(), wild, fixed, stored))
+    }
+
+    private fun getSelectedDice(): List<Dice> {
+        return _diceList.value.filter { it.selected }
     }
 }

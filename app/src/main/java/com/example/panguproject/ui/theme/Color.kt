@@ -14,3 +14,6 @@ val BaseDiceColor = Color.LightGray
 val WildDiceColor = Color.Yellow
 val FixedDiceColor = Color.Gray
 val SelectedDiceBorderColor = Color.Black
+
+val BlueprintColor = Color.LightGray
+val UsableBlueprintColor = Color.Green

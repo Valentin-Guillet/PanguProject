@@ -103,13 +103,15 @@ class GameViewModel : ViewModel() {
         if (!blueprint.costFunction?.invoke(selectedDice)!!)
             return
 
-        val newBuildingList = _buildingList.value.toMutableList()
-        newBuildingList.add(blueprint)
-        _buildingList.value = newBuildingList.toMutableList()
-
         val newBlueprintList = _blueprintList.value.toMutableList()
         newBlueprintList.remove(blueprint)
-        _blueprintList.value = newBlueprintList.toMutableList()
+        _blueprintList.value = newBlueprintList
+
+        val newBuildingList = _buildingList.value.toMutableList()
+        newBuildingList.add(blueprint)
+        _buildingList.value = newBuildingList
+
+        blueprint.onBuy?.invoke(this)
     }
 
     fun useBuilding(blueprint: Blueprint) {

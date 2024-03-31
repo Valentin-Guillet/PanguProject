@@ -18,6 +18,9 @@ class GameViewModel : ViewModel() {
     private val _nbMod = MutableStateFlow(0)
     val nbMod: StateFlow<Int> = _nbMod.asStateFlow()
 
+    private val _projectList = MutableStateFlow(mutableListOf<Project>())
+    val projectList: StateFlow<List<Project>> = _projectList.asStateFlow()
+
     private val _blueprintList = MutableStateFlow(mutableListOf<Blueprint>())
     val blueprintList: StateFlow<List<Blueprint>> = _blueprintList.asStateFlow()
 
@@ -25,7 +28,7 @@ class GameViewModel : ViewModel() {
     val buildingList: StateFlow<List<Blueprint>> = _buildingList.asStateFlow()
 
     private lateinit var remainingBlueprints : List<Blueprint>
-    private var blueprintIndex : Int = listAllBlueprints.size
+    private var blueprintIndex : Int = allBlueprintsList.size
 
     private val initNbBlueprints = 4
 
@@ -36,7 +39,11 @@ class GameViewModel : ViewModel() {
 
     fun resetGame() {
         _buildingList.value.clear()
-        for (building in listDefaultBuildings)
+
+        val newProjectList = allProjectsList.shuffled().take(3).toMutableList()
+        _projectList.value = newProjectList
+
+        for (building in defaultBuildingsList)
             _buildingList.value.add(building)
 
         _blueprintList.value.clear()
@@ -92,6 +99,13 @@ class GameViewModel : ViewModel() {
         _nbMod.value++
     }
 
+    fun buildProject(project: Project) {
+        val newProjectList = _projectList.value.toMutableList()
+        val projectIndex = newProjectList.indexOf(project)
+        newProjectList[projectIndex] = project.copy(built = true)
+        _projectList.value = newProjectList
+    }
+
     fun drawBlueprint() {
         val newBlueprintList = _blueprintList.value.toMutableList()
         newBlueprintList.add(getNextBlueprint())
@@ -127,8 +141,8 @@ class GameViewModel : ViewModel() {
     }
 
     private fun getNextBlueprint(): Blueprint {
-        if (blueprintIndex == listAllBlueprints.size) {
-            remainingBlueprints = listAllBlueprints.shuffled()
+        if (blueprintIndex == allBlueprintsList.size) {
+            remainingBlueprints = allBlueprintsList.shuffled()
             blueprintIndex = 0
         }
         return remainingBlueprints[blueprintIndex++]

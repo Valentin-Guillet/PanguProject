@@ -12,28 +12,38 @@ import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -42,24 +52,30 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.panguproject.ui.theme.BaseDiceColor
-import com.example.panguproject.ui.theme.BlueprintColor
+import com.example.panguproject.ui.theme.CardColor
 import com.example.panguproject.ui.theme.FixedDiceColor
 import com.example.panguproject.ui.theme.SelectedDiceBorderColor
-import com.example.panguproject.ui.theme.UsableBlueprintColor
+import com.example.panguproject.ui.theme.UsableCardBorderColor
 import com.example.panguproject.ui.theme.WildDiceColor
 
+@ExperimentalMaterial3Api
 @Composable
 fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = viewModel()) {
+    var displayCardInfo: DetailCard? by remember { mutableStateOf(null) }
+//    var displayCardInfo: DetailCard? by remember { mutableStateOf(gameViewModel.projectList.value[0]) }
+
     val turn: Int by gameViewModel.turn.collectAsState()
     val diceList: List<Dice> by gameViewModel.diceList.collectAsState()
     val nbRerolls: Int by gameViewModel.nbRerolls.collectAsState()
     val nbMod: Int by gameViewModel.nbMod.collectAsState()
+    val projectList: List<Project> by gameViewModel.projectList.collectAsState()
     val buildingList: List<Blueprint> by gameViewModel.buildingList.collectAsState()
     val blueprintList: List<Blueprint> by gameViewModel.blueprintList.collectAsState()
 
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
+        val focusAlpha = if (displayCardInfo != null) 0.5f else 1f
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -68,20 +84,28 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
         ) {
             GameInfoSection(turn)
             Spacer(modifier = Modifier.height(4.dp))
-            GameProjectSection(modifier = Modifier.weight(0.8f))
+            GameProjectSection(
+                projectList,
+                onProjectClick = gameViewModel::buildProject,
+                onProjectLongClick = { displayCardInfo = it },
+                modifier = Modifier.weight(0.8f).alpha(focusAlpha),
+            )
             GameBuildingSection(
                 buildingList,
                 onBlueprintClick = gameViewModel::useBuilding,
-                modifier = Modifier.weight(2f)
+                onBlueprintLongClick = { displayCardInfo = it },
+                modifier = Modifier.weight(2f).alpha(focusAlpha),
             )
             GameBlueprintSection(
                 blueprintList,
                 onBlueprintClick = gameViewModel::buyBlueprint,
-                modifier = Modifier.weight(2f))
+                onBlueprintLongClick = { displayCardInfo = it },
+                modifier = Modifier.weight(2f).alpha(focusAlpha),
+            )
             GameResourceSection(
                 diceList,
                 onDiceClick = gameViewModel::selectDice,
-                modifier = Modifier.weight(1.5f)
+                modifier = Modifier.weight(1.5f).alpha(focusAlpha),
             )
             GameActionSection(
                 nbRerolls = nbRerolls,
@@ -90,6 +114,14 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 onModMinus = gameViewModel::modMinus,
                 onModPlus = gameViewModel::modPlus,
                 onEndTurn = gameViewModel::nextTurn,
+                modifier = Modifier.alpha(focusAlpha),
+            )
+        }
+
+        if (displayCardInfo != null) {
+            DisplayCardInfo(
+                displayCardInfo!!,
+                onClick = { displayCardInfo = null },
             )
         }
     }
@@ -111,7 +143,12 @@ fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun GameProjectSection(modifier: Modifier = Modifier) {
+fun GameProjectSection(
+    projects: List<Project>,
+    onProjectClick: (project: Project) -> Unit,
+    onProjectLongClick: (project: Project) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     DisplaySection(name = null, modifier = modifier) {
         Row(
             modifier = Modifier
@@ -119,9 +156,18 @@ fun GameProjectSection(modifier: Modifier = Modifier) {
                 .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            val projectNames = listOf("Project 1\nsix ones", "Project 2", "Project 3")
-            repeat(3) { index ->
-                DisplayProject(projectNames[index], modifier = Modifier.weight(1f))
+            projects.forEach {
+                @Suppress("UNCHECKED_CAST")
+                DisplayCard(
+                    it,
+                    !it.built,
+                    onProjectClick as (DetailCard) -> Unit,
+                    onProjectLongClick as (DetailCard) -> Unit,
+                    modifier = Modifier
+                        .weight(1f)
+                        .alpha(if (it.built) 0.5f else 1f),
+                    subtext = it.shortCostDescription,
+                )
             }
         }
     }
@@ -131,7 +177,8 @@ fun GameProjectSection(modifier: Modifier = Modifier) {
 fun GameBuildingSection(
     buildings: List<Blueprint>,
     onBlueprintClick: (Blueprint) -> Unit,
-    modifier: Modifier = Modifier
+    onBlueprintLongClick: (Blueprint) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     DisplaySection(name = "Colony", modifier = modifier) {
         val nbRows = (buildings.size / 3) + 1
@@ -152,14 +199,17 @@ fun GameBuildingSection(
                     val nbCols = if (rowIndex == nbRows - 1) buildings.size % 3 else 3
                     repeat(nbCols) { colIndex ->
                         val blueprint = buildings[rowIndex * 3 + colIndex]
-                        DisplayBlueprint(
-                            blueprint = blueprint,
+                        @Suppress("UNCHECKED_CAST")
+                        DisplayCard(
+                            card = blueprint,
                             usable = blueprint.usable,
-                            onBlueprintClick = onBlueprintClick,
-                            drawBorder = true,
+                            onCardClick = onBlueprintClick as (DetailCard) -> Unit,
+                            onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
                             modifier = Modifier
                                 .width(colWidth)
-                                .height(100.dp)
+                                .height(100.dp),
+                            subtext = blueprint.shortEffectDescription,
+                            drawBorder = true,
                         )
                     }
                 }
@@ -172,7 +222,8 @@ fun GameBuildingSection(
 fun GameBlueprintSection(
     blueprints: List<Blueprint>,
     onBlueprintClick: (Blueprint) -> Unit,
-    modifier: Modifier = Modifier
+    onBlueprintLongClick: (Blueprint) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     DisplaySection(name = "Blueprints", modifier = modifier) {
         val nbRows = (blueprints.size / 3) + 1
@@ -192,14 +243,18 @@ fun GameBlueprintSection(
                 ) {
                     val nbCols = if (rowIndex == nbRows - 1) blueprints.size % 3 else 3
                     repeat(nbCols) { colIndex ->
-                        DisplayBlueprint(
-                            blueprint = blueprints[rowIndex * 3 + colIndex],
+                        val blueprint = blueprints[rowIndex * 3 + colIndex]
+                        @Suppress("UNCHECKED_CAST")
+                        DisplayCard(
+                            card = blueprint,
                             usable = true,
-                            onBlueprintClick = onBlueprintClick,
-                            drawBorder = false,
+                            onCardClick = onBlueprintClick as (DetailCard) -> Unit,
+                            onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
                             modifier = Modifier
                                 .width(colWidth)
-                                .height(100.dp)
+                                .height(100.dp),
+                            subtext = blueprint.shortCostDescription,
+                            drawBorder = false,
                         )
                     }
                 }
@@ -296,45 +351,104 @@ fun DisplaySection(
     }
 }
 
-@Composable
-fun DisplayProject(name: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .background(Color.LightGray, shape = RoundedCornerShape(8.dp)),
-    ) {
-        Text(
-            text = name,
-            modifier = Modifier.align(Alignment.Center),
-        )
-    }
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun DisplayBlueprint(
-    blueprint: Blueprint,
+fun DisplayCard(
+    card: DetailCard,
     usable: Boolean,
-    onBlueprintClick: (Blueprint) -> Unit,
+    onCardClick: (DetailCard) -> Unit,
+    onCardLongClick: (DetailCard) -> Unit,
     modifier: Modifier = Modifier,
+    subtext: String? = null,
     drawBorder: Boolean = false,
 ) {
-    val color = if (usable && drawBorder) UsableBlueprintColor else BlueprintColor
+    val borderColor = if (drawBorder && usable) UsableCardBorderColor else CardColor
     val interactionSource = remember { MutableInteractionSource() }
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-            .border(4.dp, color, shape = RoundedCornerShape(8.dp))
+            .border(4.dp, borderColor, shape = RoundedCornerShape(8.dp))
             .combinedClickable(
-                enabled = usable,
-                onClick = { onBlueprintClick(blueprint) },
-                onLongClick = { onBlueprintClick(blueprint) },
+                onClick = { if (usable) onCardClick(card) },
+                onLongClick = { onCardLongClick(card) },
                 interactionSource = interactionSource,
                 indication = null
-            )
+            ),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(blueprint.name, modifier = Modifier.align(Alignment.Center), fontSize = 28.sp)
+        val name = card.name.removeSuffix(" Project")
+        Text(
+            name,
+            modifier = Modifier
+                .padding(top = 8.dp)
+                .weight(1f)
+                .wrapContentHeight(align = Alignment.CenterVertically),
+            fontSize = if (name.length < 10) 26.sp else 22.sp,
+        )
+        if (subtext != null) {
+            val alignment = if ("\n" in subtext) Alignment.Top else Alignment.CenterVertically
+            Text(
+                subtext,
+                fontSize = 16.sp,
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentHeight(align = alignment),
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun DisplayCardInfo(
+    card: DetailCard,
+    onClick: (DetailCard) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        onClick = { onClick(card) },
+        modifier = modifier
+            .fillMaxSize()
+            .padding(vertical = 100.dp, horizontal = 30.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
+    ) {
+        Text(
+            card.name,
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 100.dp),
+            fontSize = 38.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        if (card.costDescription != null) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("Cost: ")
+                    }
+                    append(card.costDescription)
+                },
+                modifier = Modifier
+                    .padding(start = 30.dp, end = 30.dp, bottom = 50.dp)
+                    .align(Alignment.Start),
+                fontSize = 24.sp
+            )
+        }
+        if (card.effectDescription != null) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append("Effect: ")
+                    }
+                    append(card.effectDescription)
+                },
+                modifier = Modifier
+                    .padding(horizontal = 30.dp)
+                    .align(Alignment.Start),
+                fontSize = 24.sp
+            )
+        }
     }
 }
 
@@ -434,6 +548,7 @@ fun DisplayModIndicator(nbMod: Int, modifier: Modifier = Modifier) {
     }
 }
 
+@ExperimentalMaterial3Api
 @Preview(device = "id:S9+")
 @Composable
 fun GameScreenPreview() {

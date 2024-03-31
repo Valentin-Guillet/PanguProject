@@ -16,9 +16,11 @@ class Dice(
     ): Dice {
         return Dice(value, wild, fixed, stored, selected)
     }
-}
 
-fun isPair(diceList: List<Dice>): Boolean {
-    return true
-//    return diceList.count { it.value == 1 } == 2
+    companion object {
+        fun isPair(diceList: List<Dice>): Boolean {
+            return true
+//            return diceList.count { it.value == 1 } == 2
+        }
+    }
 }

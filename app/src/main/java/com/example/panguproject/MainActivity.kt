@@ -14,7 +14,7 @@ import com.example.panguproject.ui.theme.PanguProjectTheme
 /* TODO:
 - use Card for projects
 - make them swipable
-- long press on card -> show info
+- sort buildings by clickable
 - undo button ?
 - dark mode
 - log line that displays when error on buy

@@ -46,6 +46,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -379,13 +380,22 @@ fun DisplayCard(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val name = card.name.removeSuffix(" Project")
+        val titleFontSize: TextUnit = if (card.name.endsWith(" Project")) {
+            if (name.length < 10) 26.sp else 22.sp
+        } else {
+            when(name.length) {
+                in 0..8 -> 22.sp
+                in 9..13 -> 20.sp
+                else -> 18.sp
+            }
+        }
         Text(
             name,
             modifier = Modifier
                 .padding(top = 8.dp)
                 .weight(1f)
                 .wrapContentHeight(align = Alignment.CenterVertically),
-            fontSize = if (name.length < 10) 26.sp else 22.sp,
+            fontSize = titleFontSize,
         )
         if (subtext != null) {
             val alignment = if ("\n" in subtext) Alignment.Top else Alignment.CenterVertically

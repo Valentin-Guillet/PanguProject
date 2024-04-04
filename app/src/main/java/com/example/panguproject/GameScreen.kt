@@ -29,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +38,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -89,31 +93,40 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 projectList,
                 onProjectClick = gameViewModel::buildProject,
                 onProjectLongClick = { displayCardInfo = it },
-                modifier = Modifier.weight(0.8f).alpha(focusAlpha),
+                modifier = Modifier
+                    .weight(0.9f)
+                    .alpha(focusAlpha),
             )
             GameBuildingSection(
                 buildingList,
                 onBlueprintClick = gameViewModel::useBuilding,
                 onBlueprintLongClick = { displayCardInfo = it },
-                modifier = Modifier.weight(2f).alpha(focusAlpha),
+                modifier = Modifier
+                    .weight(2f)
+                    .alpha(focusAlpha),
             )
             GameBlueprintSection(
                 blueprintList,
-                onBlueprintClick = gameViewModel::buyBlueprint,
+                onBlueprintClick = gameViewModel::buildBlueprint,
                 onBlueprintLongClick = { displayCardInfo = it },
-                modifier = Modifier.weight(2f).alpha(focusAlpha),
+                onBlueprintDoubleClick = gameViewModel::discardBlueprint,
+                modifier = Modifier
+                    .weight(2f)
+                    .alpha(focusAlpha),
             )
             GameResourceSection(
                 diceList,
                 onDiceClick = gameViewModel::selectDice,
-                modifier = Modifier.weight(1.5f).alpha(focusAlpha),
+                modifier = Modifier
+                    .weight(1f)
+                    .alpha(focusAlpha),
             )
             GameActionSection(
                 nbRerolls = nbRerolls,
                 nbMod = nbMod,
-                onReroll = gameViewModel::reroll,
-                onModMinus = gameViewModel::modMinus,
-                onModPlus = gameViewModel::modPlus,
+                onReroll = gameViewModel::rerollDice,
+                onModMinus = gameViewModel::decreaseDiceValue,
+                onModPlus = gameViewModel::increaseDiceValue,
                 onEndTurn = gameViewModel::nextTurn,
                 modifier = Modifier.alpha(focusAlpha),
             )
@@ -138,7 +151,7 @@ fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = "Score  17")
-        Text(text = "Pangu Project", fontSize = 28.sp)
+        Text(text = "Pangu Project", fontSize = 26.sp)
         Text(text = "Turn  $turn / 10")
     }
 }
@@ -158,8 +171,7 @@ fun GameProjectSection(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             projects.forEach {
-                @Suppress("UNCHECKED_CAST")
-                DisplayCard(
+                @Suppress("UNCHECKED_CAST") DisplayCard(
                     it,
                     !it.built,
                     onProjectClick as (DetailCard) -> Unit,
@@ -181,8 +193,9 @@ fun GameBuildingSection(
     onBlueprintLongClick: (Blueprint) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val buildingList = buildings.sortedBy { it.onClick == null }
     DisplaySection(name = "Colony", modifier = modifier) {
-        val nbRows = (buildings.size / 3) + 1
+        val nbRows = (buildingList.size / 3) + 1
         val colWidth: Dp = (maxWidth - 24.dp) / 3
         Column(
             modifier = Modifier
@@ -193,22 +206,20 @@ fun GameBuildingSection(
         ) {
             repeat(nbRows) { rowIndex ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    val nbCols = if (rowIndex == nbRows - 1) buildings.size % 3 else 3
+                    val nbCols = if (rowIndex == nbRows - 1) buildingList.size % 3 else 3
                     repeat(nbCols) { colIndex ->
-                        val blueprint = buildings[rowIndex * 3 + colIndex]
-                        @Suppress("UNCHECKED_CAST")
-                        DisplayCard(
+                        val blueprint = buildingList[rowIndex * 3 + colIndex]
+                        @Suppress("UNCHECKED_CAST") DisplayCard(
                             card = blueprint,
                             usable = blueprint.usable,
                             onCardClick = onBlueprintClick as (DetailCard) -> Unit,
                             onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
                             modifier = Modifier
                                 .width(colWidth)
-                                .height(100.dp),
+                                .height(75.dp),
                             subtext = blueprint.shortEffectDescription,
                             drawBorder = true,
                         )
@@ -224,6 +235,7 @@ fun GameBlueprintSection(
     blueprints: List<Blueprint>,
     onBlueprintClick: (Blueprint) -> Unit,
     onBlueprintLongClick: (Blueprint) -> Unit,
+    onBlueprintDoubleClick: (Blueprint) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     DisplaySection(name = "Blueprints", modifier = modifier) {
@@ -238,22 +250,21 @@ fun GameBlueprintSection(
         ) {
             repeat(nbRows) { rowIndex ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     val nbCols = if (rowIndex == nbRows - 1) blueprints.size % 3 else 3
                     repeat(nbCols) { colIndex ->
                         val blueprint = blueprints[rowIndex * 3 + colIndex]
-                        @Suppress("UNCHECKED_CAST")
-                        DisplayCard(
+                        @Suppress("UNCHECKED_CAST") DisplayCard(
                             card = blueprint,
                             usable = true,
                             onCardClick = onBlueprintClick as (DetailCard) -> Unit,
                             onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
+                            onCardDoubleClick = onBlueprintDoubleClick as (DetailCard) -> Unit,
                             modifier = Modifier
                                 .width(colWidth)
-                                .height(100.dp),
+                                .height(75.dp),
                             subtext = blueprint.shortCostDescription,
                             drawBorder = false,
                         )
@@ -333,6 +344,7 @@ fun DisplaySection(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
+            .clip(shape = RoundedCornerShape(16.dp))
             .border(4.dp, Color.Gray, shape = RoundedCornerShape(16.dp))
     ) {
         content()
@@ -345,7 +357,7 @@ fun DisplaySection(
                     .padding(bottom = 4.dp, end = 10.dp)
                     .zIndex(-1f),
                 fontStyle = FontStyle.Italic,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 color = Color.Red.copy(alpha = 0.7f),
             )
         }
@@ -362,51 +374,55 @@ fun DisplayCard(
     modifier: Modifier = Modifier,
     subtext: String? = null,
     drawBorder: Boolean = false,
+    onCardDoubleClick: ((DetailCard) -> Unit)? = null,
 ) {
     val borderColor = if (drawBorder && usable) UsableCardBorderColor else CardColor
     val interactionSource = remember { MutableInteractionSource() }
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-            .border(4.dp, borderColor, shape = RoundedCornerShape(8.dp))
-            .combinedClickable(
-                onClick = { if (usable) onCardClick(card) },
-                onLongClick = { onCardLongClick(card) },
-                interactionSource = interactionSource,
-                indication = null
-            ),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        val name = card.name.removeSuffix(" Project")
-        val titleFontSize: TextUnit = if (card.name.endsWith(" Project")) {
-            if (name.length < 10) 26.sp else 22.sp
-        } else {
-            when(name.length) {
-                in 0..8 -> 22.sp
-                in 9..13 -> 20.sp
-                else -> 18.sp
+    val doubleClickCallback: (() -> Unit)? = if (onCardDoubleClick != null) {
+        { onCardDoubleClick(card) }
+    } else null
+    UpdateViewConfiguration(doubleTapTimeoutMillis = 80) {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                .border(4.dp, borderColor, shape = RoundedCornerShape(8.dp))
+                .combinedClickable(
+                    onClick = { if (usable) onCardClick(card) },
+                    onLongClick = { onCardLongClick(card) },
+                    onDoubleClick = doubleClickCallback,
+                    interactionSource = interactionSource,
+                    indication = null
+                ),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val name = card.name.removeSuffix(" Project")
+            val titleFontSize: TextUnit = when (name.length) {
+                in 0..9 -> 20.sp
+                in 10..14 -> 18.sp
+                else -> 16.sp
             }
-        }
-        Text(
-            name,
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .weight(1f)
-                .wrapContentHeight(align = Alignment.CenterVertically),
-            fontSize = titleFontSize,
-        )
-        if (subtext != null) {
-            val alignment = if ("\n" in subtext) Alignment.Top else Alignment.CenterVertically
             Text(
-                subtext,
-                fontSize = 16.sp,
+                name,
                 modifier = Modifier
+                    .padding(top = 2.dp)
                     .weight(1f)
-                    .wrapContentHeight(align = alignment),
-                textAlign = TextAlign.Center,
+                    .wrapContentHeight(align = Alignment.CenterVertically),
+                fontSize = titleFontSize,
             )
+            if (subtext != null) {
+                val alignment = if ("\n" in subtext) Alignment.Top else Alignment.CenterVertically
+                Text(
+                    subtext,
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    modifier = Modifier
+                        .weight(1f)
+                        .wrapContentHeight(align = alignment),
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }
@@ -422,41 +438,49 @@ fun DisplayCardInfo(
         onClick = { onClick(card) },
         modifier = modifier
             .fillMaxSize()
-            .padding(vertical = 100.dp, horizontal = 30.dp),
+            .padding(vertical = 30.dp, horizontal = 30.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
     ) {
+        val name = if (card.name.length > 15) card.name.replace(" ", "\n") else card.name
         Text(
-            card.name,
-            modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 100.dp),
-            fontSize = 38.sp,
+            name,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .padding(top = 30.dp, bottom = 50.dp),
+            fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
+            lineHeight = 40.sp,
         )
         if (card.costDescription != null) {
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
                         append("Cost: ")
                     }
                     append(card.costDescription)
                 },
                 modifier = Modifier
-                    .padding(start = 30.dp, end = 30.dp, bottom = 50.dp)
+                    .padding(start = 20.dp, end = 20.dp, bottom = 50.dp)
                     .align(Alignment.Start),
-                fontSize = 24.sp
+                textAlign = TextAlign.Justify,
+                fontSize = 20.sp,
+                lineHeight = 28.sp,
             )
         }
         if (card.effectDescription != null) {
             Text(
                 text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
                         append("Effect: ")
                     }
                     append(card.effectDescription)
                 },
                 modifier = Modifier
-                    .padding(horizontal = 30.dp)
+                    .padding(horizontal = 20.dp)
                     .align(Alignment.Start),
-                fontSize = 24.sp
+                textAlign = TextAlign.Justify,
+                fontSize = 20.sp,
+                lineHeight = 38.sp,
             )
         }
     }
@@ -487,8 +511,7 @@ fun DiceStorage(
                     if (nbMaxDice == 1) Arrangement.Center else Arrangement.spacedBy(pad.dp)
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
+                        .fillMaxWidth(),
                     horizontalArrangement = arrangement
                 ) {
                     val minId = row * nbMaxDice
@@ -546,15 +569,46 @@ fun DisplayModIndicator(nbMod: Int, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = "$nbMod",
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Text(
             text = "Mod",
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
+    }
+}
+
+
+@Composable
+fun UpdateViewConfiguration(
+    longPressTimeoutMillis: Long? = null,
+    doubleTapTimeoutMillis: Long? = null,
+    doubleTapMinTimeMillis: Long? = null,
+    touchSlop: Float? = null,
+    content: @Composable () -> Unit,
+) {
+    fun ViewConfiguration.updateViewConfiguration() = object : ViewConfiguration {
+        override val longPressTimeoutMillis
+            get() = longPressTimeoutMillis ?: this@updateViewConfiguration.longPressTimeoutMillis
+
+        override val doubleTapTimeoutMillis
+            get() = doubleTapTimeoutMillis ?: this@updateViewConfiguration.doubleTapTimeoutMillis
+
+        override val doubleTapMinTimeMillis
+            get() =
+                doubleTapMinTimeMillis ?: this@updateViewConfiguration.doubleTapMinTimeMillis
+
+        override val touchSlop: Float
+            get() = touchSlop ?: this@updateViewConfiguration.touchSlop
+    }
+
+    CompositionLocalProvider(
+        LocalViewConfiguration provides LocalViewConfiguration.current.updateViewConfiguration()
+    ) {
+        content()
     }
 }
 

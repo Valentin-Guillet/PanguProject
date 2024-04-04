@@ -6,12 +6,12 @@ class Blueprint(
     shortCostDescription: String? = null,
     effectDescription: String? = null,
     shortEffectDescription: String? = null,
-    val costFunction: ((diceList: List<Dice>) -> Boolean)? = null,
+    val costFunction: ((gameViewModel: GameViewModel) -> Boolean)? = null,
     val clickCostFunction: ((diceList: List<Dice>) -> Boolean)? = null,
-    val click: ((gameViewModel: GameViewModel) -> Unit)? = null,
-    val startTurn: ((gameViewModel: GameViewModel) -> Unit)? = null,
+    val onClick: ((gameViewModel: GameViewModel) -> Unit)? = null,
+    val onStartTurn: ((gameViewModel: GameViewModel) -> Unit)? = null,
     val onBuy: ((gameViewModel: GameViewModel) -> Unit)? = null,
-    val canApply: ((gameViewModel: GameViewModel) -> Boolean) = { true },
+    val onReroll: ((gameViewModel: GameViewModel) -> Unit)? = null,
 ) : DetailCard(
     name,
     costDescription,
@@ -19,7 +19,7 @@ class Blueprint(
     effectDescription,
     shortEffectDescription,
 ) {
-    var usable: Boolean = (click != null)
+    var usable: Boolean = (onClick != null)
 
     fun copy(used: Boolean): Blueprint {
         val blueprint = Blueprint(
@@ -30,10 +30,10 @@ class Blueprint(
             shortEffectDescription,
             costFunction,
             clickCostFunction,
-            click,
-            startTurn,
+            onClick,
+            onStartTurn,
             onBuy,
-            canApply,
+            onReroll,
         )
         if (used)
             blueprint.usable = false
@@ -43,17 +43,26 @@ class Blueprint(
 
 val defaultBuildingsList: List<Blueprint> = listOf(
     Blueprint(
+        "Reset",
+        effectDescription = "Reset debug",
+        shortEffectDescription = "Reset debug",
+        clickCostFunction = { true },
+        onClick = GameViewModel::resetGame,
+    ),
+    Blueprint(
         "Laboratory",
         effectDescription = "Consume a pair of dice to draw a blueprint.",
         shortEffectDescription = "Pair ->\nDraw a blueprint",
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::drawBlueprint
+        clickCostFunction = { Dice.isOfAKind(2)(it) },
+        onClick = { it.consumeDice(); it.drawBlueprint() },
     ),
-    Blueprint("Forge",
+    Blueprint(
+        "Forge",
         effectDescription = "Consume three in a row to gain a stored wild die.",
         shortEffectDescription = "Three in a row ->\nStored wild die",
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::drawBlueprint),
+        clickCostFunction = { Dice.isInARow(3)(it) },
+        onClick = { it.consumeDice(); it.rollDice(wild = true, stored = true) },
+    ),
 )
 
 val allBlueprintsList: List<Blueprint> = listOf(
@@ -62,10 +71,19 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
         effectDescription = "On click: turn a die of value 1 into a wild die.",
-        shortEffectDescription = "Click: 1 ->\nwild",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modMinus,
+        shortEffectDescription = "Click:\n1 -> wild",
+        costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
+        clickCostFunction = { Dice.isSet(listOf(1))(it) },
+        onClick = { it.consumeDice(); it.rollDice(1, wild = true) },
+    ),
+    Blueprint(
+        "AutoMiner",
+        costDescription = "Three dice of value 2, 4 and 6.",
+        shortCostDescription = "2, 4, 6",
+        effectDescription = "On start of turn: gain +1 MOD.",
+        shortEffectDescription = "Start of turn:\n+1 MOD",
+        costFunction = { Dice.isSet(listOf(2, 4, 6))(it.getSelectedDice()) },
+        onStartTurn = { it.gainMod(1) },
     ),
     Blueprint(
         "Backup Plan",
@@ -73,29 +91,42 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three of a kind",
         effectDescription = "When built: gain a stored wild die.\nOn end of turn: gain a stored wild die if no buildings were purchased this turn.",
         shortEffectDescription = "EOT: +1 stored wild\nif no card built",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
+        onBuy = { it.rollDice(wild = true, stored = true) },
+        onStartTurn = { if (!it.blueprintBuilt) it.rollDice(wild = true, stored = true) },
+    ),
+    Blueprint(
+        "Battery",
+        costDescription = "Four dice of a kind.",
+        shortCostDescription = "Four of a kind",
+        effectDescription = "On end of turn: if at least two dice remain, roll two extra basic dice on the next turn.",
+        shortEffectDescription = "EOT: ≥2 dice ->\n+2 basic dice",
+        costFunction = { Dice.isOfAKind(4)(it.getSelectedDice()) },
+        onStartTurn = {
+            if (it.nbDiceEndOfTurn >= 2) {
+                it.rollDice()
+                it.rollDice()
+            }
+        }
     ),
     Blueprint(
         "Bionic Robot",
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
         effectDescription = "When rolling, if exactly one die is rerolled, gain an additional basic die.",
-        shortEffectDescription = "Reroll: +1 basic die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        shortEffectDescription = "Reroll one die:\n+1 basic die",
+        costFunction = { Dice.isOfAKind(4)(it.getSelectedDice()) },
+        onReroll = { if (it.getSelectedDice().size == 1) it.rollDice() },
     ),
     Blueprint(
-        "Clone Machine",
+        "Cloner",
         costDescription = "Five dice in a row.",
         shortCostDescription = "Five in a row",
         effectDescription = "On click: generate a fixed copy of a selected die.",
         shortEffectDescription = "Click: 1 die ->\nfixed copy",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isInARow(5)(it.getSelectedDice()) },
+        clickCostFunction = { it.size == 1 },
+        onClick = { it.rollDice(it.getSelectedDice()[0].value, fixed = true) },
     ),
 ) + (1..2).map {
     Blueprint(
@@ -104,62 +135,59 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "1, 3, 5",
         effectDescription = "On click: fix a selected die and store it.",
         shortEffectDescription = "Click: a die ->\nfix and store",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isSet(listOf(1, 3, 5))(it.getSelectedDice()) },
+        clickCostFunction = { it.size == 1 },
+        onClick = { gameViewModel ->
+            val dice = gameViewModel.getSelectedDice().first()
+            gameViewModel.consumeDice()
+            gameViewModel.rollDice(dice.value, fixed = true, stored = true)
+        }
     )
 } + listOf(
     Blueprint(
         "Dome",
-        costDescription = "Three dice of value 6.",
-        shortCostDescription = "6, 6, 6",
-        effectDescription = "At the start of turn, gain a fixed die of value 6.",
-        shortEffectDescription = "Start of turn:\ngain a fixed 6",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costDescription = "A full-house of dice. Example: 4, 4, 4, 2, 2",
+        shortCostDescription = "Full-house",
+        effectDescription = "On start of turn: roll a basic die and preserve it.",
+        shortEffectDescription = "Start of turn:\nroll a stored die",
+        costFunction = { Dice.isFullhouse(it.getSelectedDice()) },
+        onStartTurn = { it.rollDice(stored = true) },
     )
-) + (1..6).map {
+) + (1..6).map { value ->
     Blueprint(
         "Drone",
-        costDescription = "A triple of dice of value $it.",
-        shortCostDescription = "$it, $it, $it",
-        effectDescription = "On start of turn: gain a fixed die of value $it.",
-        shortEffectDescription = "Start of turn:\ngain a fixed $it",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costDescription = "A triple of dice of value $value.",
+        shortCostDescription = "$value, $value, $value",
+        effectDescription = "On start of turn: gain a fixed die of value $value.",
+        shortEffectDescription = "Start of turn:\ngain a fixed $value",
+        costFunction = { Dice.isSet(listOf(value, value, value))(it.getSelectedDice()) },
+        onStartTurn = { it.rollDice(value, fixed = true) },
     )
 } + listOf(
-    Blueprint(
-        "Battery Storage",
-        costDescription = "Four dice of a kind.",
-        shortCostDescription = "Four of a kind",
-        effectDescription = "On end of turn: if at least two dice remain, roll two extra basic dice on the next turn.",
-        shortEffectDescription = "EOT: ≥2 dice left ->\n+2 basic dice",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
-    ),
     Blueprint(
         "Extractor",
         costDescription = "Three dice of value 4, 5, 6.",
         shortCostDescription = "4, 5, 6",
         effectDescription = "On click: consume a pair to gain a stored wild die.",
         shortEffectDescription = "Click: a pair ->\nstored wild die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isSet(listOf(4, 5, 6))(it.getSelectedDice()) },
+        clickCostFunction = { Dice.isOfAKind(2)(it) },
+        onClick = { it.consumeDice(); it.rollDice(wild = true, stored = true) },
     ),
     Blueprint(
         "Fission",
         costDescription = "A set of dice that amounts to exactly 20.",
         shortCostDescription = "Sum = 20",
         effectDescription = "On click: split a die into two dice.",
-        shortEffectDescription = "Click: a die->\ntwo dice w/ same sum",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        shortEffectDescription = "Click: a die->\ntwo dice w/ same",
+        costFunction = { Dice.sumsTo(20)(it.getSelectedDice()) },
+        clickCostFunction = { it.size == 1 && it[0].value > 1 },
+        onClick = {
+            val value = it.getSelectedDice().first().value
+            it.consumeDice()
+            it.rollDice(value / 2)
+            it.rollDice((value + 1) / 2)
+        },
     ),
     Blueprint(
         "Fusion",
@@ -167,19 +195,13 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Sum = 12",
         effectDescription = "On click: combine two selected dice into a die of their sum.",
         shortEffectDescription = "Click: 2 dice->\na die of their sum",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
-    ),
-    Blueprint(
-        "Temp. Settlement",
-        costDescription = "Three dice in a row.",
-        shortCostDescription = "Three in a row",
-        effectDescription = "On start of turn: if the turn number is even, roll a basic die.",
-        shortEffectDescription = "Even turn:\n+1 basic die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.sumsTo(12)(it.getSelectedDice()) },
+        clickCostFunction = { it.size == 2 && it.sumOf { dice -> dice.value } <= 6 },
+        onClick = {
+            val value = it.getSelectedDice().sumOf { dice -> dice.value }
+            it.consumeDice()
+            it.rollDice(value)
+        },
     ),
     Blueprint(
         "Monopole",
@@ -187,9 +209,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three even\nand all even",
         effectDescription = "On start of turn: gain a fixed die of even value.",
         shortEffectDescription = "Start of turn:\ngain a fixed even",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { it.getSelectedDice().size == 3 && it.diceList.value.all { dice -> dice.value % 2 == 0 } },
+        onStartTurn = { it.rollDice(2 * (1..3).random(), fixed = true) },
     ),
     Blueprint(
         "Monopole",
@@ -197,9 +218,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three odd\nand all odd",
         effectDescription = "On start of turn: gain a fixed die of odd value.",
         shortEffectDescription = "Start of turn:\ngain a fixed odd",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { it.getSelectedDice().size == 3 && it.diceList.value.all { dice -> dice.value % 2 == 1 } },
+        onStartTurn = { it.rollDice(2 * (0..2).random() + 1, fixed = true) },
     ),
     Blueprint(
         "Nanobots",
@@ -207,9 +227,10 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three in a row",
         effectDescription = "When built: gain a fixed stored die.\nOn click: reroll a basic or fixed die.",
         shortEffectDescription = "Click: reroll basic\nor fixed die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isInARow(3)(it.getSelectedDice()) },
+        onBuy = { it.rollDice(stored = true, fixed = true) },
+        clickCostFunction = { it.size == 1 },
+        onClick = GameViewModel::rerollDice,
     ),
     Blueprint(
         "O.M.N.I.",
@@ -217,9 +238,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Five of a kind",
         effectDescription = "On start of turn: gain a stored wild die.",
         shortEffectDescription = "Start of turn:\ngain stored wild die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isOfAKind(5)(it.getSelectedDice()) },
+        onStartTurn = { it.rollDice(wild = true, stored = true) },
     ),
     Blueprint(
         "Observatory",
@@ -227,9 +247,17 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "4, 5, 6",
         effectDescription = "When built: draw a blueprint.\nOn discard: gain one more MOD.",
         shortEffectDescription = "Discard:\n+1 MOD",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isSet(listOf(4, 5, 6))(it.getSelectedDice()) },
+        onBuy = { it.drawBlueprint(); it.increaseBaseMod() },
+    ),
+    Blueprint(
+        "Outpost",
+        costDescription = "Three dice in a row.",
+        shortCostDescription = "Three in a row",
+        effectDescription = "On start of turn: if the turn number is even, roll a basic die.",
+        shortEffectDescription = "Even turn:\n+1 basic die",
+        costFunction = { Dice.isInARow(3)(it.getSelectedDice()) },
+        onStartTurn = { if (it.turn.value % 2 == 0) it.rollDice() },
     ),
     Blueprint(
         "Prospector",
@@ -237,9 +265,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Four of a kind",
         effectDescription = "On start of turn: gain a stored fixed die.",
         shortEffectDescription = "Start of turn:\ngain stored fixed die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isOfAKind(4)(it.getSelectedDice()) },
+        onStartTurn = { it.rollDice(fixed = true, stored = true) },
     ),
     Blueprint(
         "Prototype",
@@ -247,19 +274,18 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three in a row",
         effectDescription = "On start of turn: gain a fixed die of random value.",
         shortEffectDescription = "Start of turn:\ngain random fixed die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isInARow(3)(it.getSelectedDice()) },
+        onStartTurn = { it.rollDice(fixed = true) },
     ),
     Blueprint(
-        "Quantum Computer",
+        "Qbit devices",
         costDescription = "Two pairs of dice in a row. Example: 2, 2, 3, 3.",
         shortCostDescription = "Two pairs\nin a row",
         effectDescription = "On click: reroll all selected basic dice.",
         shortEffectDescription = "Click: reroll all\nselected basic dice",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isOfAKindInARow(2, 2)(it.getSelectedDice()) },
+        clickCostFunction = { it.any { dice -> !dice.fixed && !dice.wild } },
+        onClick = { it.rerollDice(useReroll = false) },
     ),
     Blueprint(
         "Radiation",
@@ -267,19 +293,29 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Sum = 25",
         effectDescription = "On click: consume a die to generate two fixed dice of value +1 and -1.",
         shortEffectDescription = "Click: 1 die->\n2 fixed +1/-1",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.sumsTo(25)(it.getSelectedDice()) },
+        clickCostFunction = { it.size == 1 && 1 < it[0].value && it[0].value < 6 },
+        onClick = {
+            val value = it.getSelectedDice()[0].value
+            it.consumeDice()
+            it.rollDice(value - 1)
+            it.rollDice(value + 1)
+        },
     ),
     Blueprint(
         "Reactor",
         costDescription = "A set of dice that amounts to exactly 16.",
         shortCostDescription = "Sum = 16",
         effectDescription = "On click: equalize the value of two selected dice.",
-        shortEffectDescription = "Click: 2 dice->\ndistribute their value",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        shortEffectDescription = "Click: 2 dice->\nequalize",
+        costFunction = { Dice.sumsTo(16)(it.getSelectedDice()) },
+        clickCostFunction = { it.size == 2 && it.none { dice -> dice.fixed || dice.wild } },
+        onClick = {
+            val value = it.getSelectedDice().sumOf { dice -> dice.value }
+            it.consumeDice()
+            it.rollDice((value + 1) / 2)
+            it.rollDice(value / 2)
+        }
     ),
     Blueprint(
         "Recycler",
@@ -287,9 +323,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three of a kind",
         effectDescription = "When spending a wild die: roll an extra basic die at the start of next turn.",
         shortEffectDescription = "Use wild die ->\n+1 die next turn",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
+        onStartTurn = { if (it.usedWildDice) it.rollDice() },
     ),
     Blueprint(
         "Replicator",
@@ -297,19 +332,24 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Two wilds",
         effectDescription = "On start of turn: gain a wild die.",
         shortEffectDescription = "Start of turn:\ngain wild die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = {
+            it.getSelectedDice().size == 2 && it.getSelectedDice().all { dice -> dice.wild }
+        },
+        onStartTurn = { it.rollDice(wild = true) },
     ),
     Blueprint(
         "Self-Repair",
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
         effectDescription = "On end of turn: if all non-stored diced have been used, gain two basic dice next turn.",
-        shortEffectDescription = "EOT: 0 non-stored ->\n+2 basic next turn",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        shortEffectDescription = "EOT: 0 dice ->\n+2 dice next turn",
+        costFunction = { Dice.isOfAKind(4)(it.getSelectedDice()) },
+        onStartTurn = {
+            if (!it.hasBasicDiceLeft) {
+                it.rollDice()
+                it.rollDice()
+            }
+        },
     ),
 ) + (1..2).map {
     Blueprint(
@@ -318,9 +358,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Four in a row",
         effectDescription = "On start of turn: gain a basic die.",
         shortEffectDescription = "Start of turn:\ngain basic die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isInARow(4)(it.getSelectedDice()) },
+        onStartTurn = { it.rollDice() },
     )
 } + listOf(
     Blueprint(
@@ -329,38 +368,33 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three of a kind",
         effectDescription = "When built: gain +2 MOD.\nDice might be MODed from 1 to 6 and 6 to 1.",
         shortEffectDescription = "Can MOD 1 <-> 6",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
+        onBuy = { it.gainMod(2); it.allowWrapping() },
     ),
     Blueprint(
-        "Tourist Attraction",
+        "Treadmill",
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
         effectDescription = "On start of turn: roll one extra basic die per project built.",
         shortEffectDescription = "Start of turn:\n+1 die / project built",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
+        onStartTurn = {
+            val n = it.projectList.value.count { project -> project.built }
+            for (i in 1..n) it.rollDice()
+        },
     ),
     Blueprint(
-        "Training Camp",
+        "Tunneler",
         costDescription = "Two pairs of dice in a row.",
         shortCostDescription = "Two pairs in a row",
         effectDescription = "On click: flip a selected dice to its opposite value (1 -> 6, 2 -> 5...).",
         shortEffectDescription = "Click: flip a die",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
-    ),
-    Blueprint(
-        "Transporter",
-        costDescription = "Three dice of value 2, 4 and 6.",
-        shortCostDescription = "2, 4, 6",
-        effectDescription = "On start of turn: gain +1 MOD.",
-        shortEffectDescription = "Start of turn:\n+1 MOD",
-        costFunction = Dice::isPair,
-        clickCostFunction = Dice::isPair,
-        click = GameViewModel::modPlus,
+        costFunction = { Dice.isOfAKindInARow(2, 2)(it.getSelectedDice()) },
+        clickCostFunction = { it.size == 1 && !it[0].fixed && !it[0].wild },
+        onClick = {
+            val value = it.getSelectedDice()[0].value
+            it.consumeDice()
+            it.rollDice(7 - value)
+        },
     ),
 )

@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class GameViewModel : ViewModel() {
+    private val _score = MutableStateFlow(0)
+    val score: StateFlow<Int> = _score.asStateFlow()
+
     private val _turn = MutableStateFlow(0)
     val turn: StateFlow<Int> = _turn.asStateFlow()
 
@@ -169,11 +172,18 @@ class GameViewModel : ViewModel() {
         consumeDice()
         newProjectList[projectIndex] = project.copy(built = true)
         _projectList.value = newProjectList
+
+        _score.value += 3 * (11 - turn.value) + 1
     }
 
     fun drawBlueprint() {
         val newBlueprintList = _blueprintList.value.toMutableList()
-        newBlueprintList.add(getNextBlueprint())
+        val newBlueprint = getNextBlueprint()
+        if (newBlueprintList.size >= 12) {
+            gainMod(baseModDelta)
+            return
+        }
+        newBlueprintList.add(newBlueprint)
         _blueprintList.value = newBlueprintList
     }
 
@@ -194,6 +204,7 @@ class GameViewModel : ViewModel() {
         blueprint.onBuy?.invoke(this)
 
         blueprintBuilt = true
+        _score.value++
     }
 
     fun discardBlueprint(blueprint: Blueprint) {

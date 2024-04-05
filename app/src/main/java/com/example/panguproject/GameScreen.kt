@@ -71,6 +71,7 @@ import com.example.panguproject.ui.theme.WildDiceColor
 fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = viewModel()) {
     var displayCardInfo: DetailCard? by remember { mutableStateOf(null) }
 
+    val score: Int by gameViewModel.score.collectAsState()
     val turn: Int by gameViewModel.turn.collectAsState()
     val diceList: List<Dice> by gameViewModel.diceList.collectAsState()
     val nbRerolls: Int by gameViewModel.nbRerolls.collectAsState()
@@ -89,7 +90,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 .padding(horizontal = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            GameInfoSection(turn)
+            GameInfoSection(score, turn)
             Spacer(modifier = Modifier.height(4.dp))
             GameProjectSection(
                 projectList,
@@ -144,7 +145,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
 }
 
 @Composable
-fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
+fun GameInfoSection(score: Int, turn: Int, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -152,7 +153,7 @@ fun GameInfoSection(turn: Int, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "Score  17")
+        Text(text = "Score  $score")
         Text(text = "Pangu Project", fontSize = 26.sp)
         Text(text = "Turn  $turn / 10")
     }

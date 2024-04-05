@@ -12,12 +12,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- make them swipable
+- make info card swipable
+- log line that displays when error on buy
+- remove reset building and implement real reset
+- make game savable
 - undo button ?
 - dark mode
-- log line that displays when error on buy
-- cf notes in drive file
-- remove reset building
 */
 
 @ExperimentalMaterial3Api

@@ -12,15 +12,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- use Card for projects
 - make them swipable
 - big green validation mark when project build
-- sort buildings by clickable
 - undo button ?
 - dark mode
 - log line that displays when error on buy
 - cf notes in drive file
-- check all recompositions: nothing seem to work as expected
 - remove reset building
 */
 

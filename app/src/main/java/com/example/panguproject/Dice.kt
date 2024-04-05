@@ -81,5 +81,15 @@ class Dice(
                 return sortedDiceList == correctValues
             }
         }
+
+        fun isSetsOfAKind(nbSets: Int, nbKind: Int): (List<Dice>) -> Boolean {
+            return fun(diceList: List<Dice>): Boolean {
+                if (diceList.size != nbSets * nbKind)
+                    return false
+
+                val freqMap = diceList.groupingBy { it.value }.eachCount()
+                return freqMap.size == nbSets && freqMap.all { it.value == nbKind }
+            }
+        }
     }
 }

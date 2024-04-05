@@ -42,8 +42,6 @@ class GameViewModel : ViewModel() {
         private set
     private var wrappingAllowed = false
 
-    private val debugBlueprint: String = "Tunneler"
-
 
     init {
         resetGame()
@@ -144,12 +142,12 @@ class GameViewModel : ViewModel() {
         return _diceList.value.filter { it.selected }
     }
 
-    fun rerollDice(useReroll: Boolean = true) {
-        if (_diceList.value.none { it.selected && !it.fixed }) return
+    fun rerollDice(force: Boolean = false, useReroll: Boolean = true) {
+        if (_diceList.value.none { it.selected && (force || !it.fixed) }) return
 
         val newDiceList = _diceList.value.toMutableList()
         for (i in 0 until newDiceList.size) {
-            if (newDiceList[i].selected && !newDiceList[i].fixed)
+            if (newDiceList[i].selected && (force || !newDiceList[i].fixed))
                 newDiceList[i] = newDiceList[i].copy(value = (1..6).random())
         }
         _diceList.value = newDiceList
@@ -165,8 +163,10 @@ class GameViewModel : ViewModel() {
     fun buildProject(project: Project) {
         val newProjectList = _projectList.value.toMutableList()
         val projectIndex = newProjectList.indexOf(project)
-        if (projectIndex == -1)
+        if (projectIndex == -1 || !project.costFunction(this))
             return
+
+        consumeDice()
         newProjectList[projectIndex] = project.copy(built = true)
         _projectList.value = newProjectList
     }
@@ -225,26 +225,27 @@ class GameViewModel : ViewModel() {
 
 
     private fun modifySelectedDice(delta: Int, force: Boolean = false) {
-        if (_nbMod.value == 0)
-            return
-
         val selectedDice = getSelectedDice()
         if (selectedDice.size != 1)
             return
 
-        if (selectedDice[0].fixed && !force)
+        val dice = selectedDice[0]
+
+        if (dice.fixed && !force)
             return
 
-        val newDiceList = _diceList.value.toMutableList()
-        val diceIndex = newDiceList.indexOfFirst { it.selected }
-        if (diceIndex == -1)
+        if (!dice.wild && _nbMod.value == 0)
             return
 
-        val dice = newDiceList[diceIndex]
         if (!wrappingAllowed && (dice.value + delta < 1 || dice.value + delta > 6))
             return
 
         val newValue = (dice.value + delta + 5) % 6 + 1
+
+        val newDiceList = _diceList.value.toMutableList()
+        val diceIndex = newDiceList.indexOf(dice)
+        if (diceIndex == -1)
+            return
         newDiceList[diceIndex] = dice.copy(value = newValue)
         _diceList.value = newDiceList.toMutableList()
 
@@ -256,17 +257,6 @@ class GameViewModel : ViewModel() {
         if (blueprintIndex == allBlueprintsList.size) {
             remainingBlueprints = allBlueprintsList.shuffled()
             blueprintIndex = 0
-        }
-
-        if (debugBlueprint.isNotEmpty()) {
-            val dbgIndex = remainingBlueprints.indexOfFirst { it.name == debugBlueprint }
-            if (dbgIndex != -1) {
-                val tmpList = remainingBlueprints.toMutableList()
-                val tmp = tmpList[dbgIndex]
-                tmpList[dbgIndex] = tmpList[0]
-                tmpList[0] = tmp
-                remainingBlueprints = tmpList.toList()
-            }
         }
 
         return remainingBlueprints[blueprintIndex++]

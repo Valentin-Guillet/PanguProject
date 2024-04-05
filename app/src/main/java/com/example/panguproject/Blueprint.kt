@@ -230,7 +230,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costFunction = { Dice.isInARow(3)(it.getSelectedDice()) },
         onBuy = { it.rollDice(stored = true, fixed = true) },
         clickCostFunction = { it.size == 1 },
-        onClick = GameViewModel::rerollDice,
+        onClick = { it.rerollDice(force = true, useReroll = false) },
     ),
     Blueprint(
         "O.M.N.I.",

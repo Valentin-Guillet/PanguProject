@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,9 +65,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.panguproject.ui.theme.BackgroundColor
 import com.example.panguproject.ui.theme.BaseDiceColor
-import com.example.panguproject.ui.theme.CardColor
+import com.example.panguproject.ui.theme.ButtonColor
 import com.example.panguproject.ui.theme.FixedDiceColor
+import com.example.panguproject.ui.theme.SectionBackgroundColor
+import com.example.panguproject.ui.theme.SectionTextColor
 import com.example.panguproject.ui.theme.SelectedDiceBorderColor
 import com.example.panguproject.ui.theme.UsableCardBorderColor
 import com.example.panguproject.ui.theme.WildDiceColor
@@ -95,7 +100,8 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
     }
 
     Surface(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        color = BackgroundColor,
     ) {
         val focusAlpha = if (displayCardInfoList != null) 0.5f else 1f
         Column(
@@ -187,11 +193,11 @@ fun GameInfoSection(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "Score: $score", fontSize = 16.sp)
+        Text(text = "Score: $score", fontSize = 16.sp, color = Color.White)
         if (logMsg != null) {
-            Text(text = logMsg, fontSize = 16.sp)
+            Text(text = logMsg, fontSize = 16.sp, color = Color.White)
         }
-        Text(text = "Turn  $turn / 10", fontSize = 16.sp)
+        Text(text = "Turn  $turn / 10", fontSize = 16.sp, color = Color.White)
     }
 }
 
@@ -366,21 +372,52 @@ fun GameActionSection(
         modifier = modifier
             .fillMaxWidth()
             .padding(4.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.Bottom,
     ) {
-        Button(onClick = onReroll, enabled = nbRerolls > 0) {
-            Text("Reroll (${nbRerolls})")
+        Button(
+            onClick = onReroll,
+            enabled = nbRerolls > 0,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = ButtonColor,
+                disabledContainerColor = ButtonColor.copy(alpha = 0.7f)
+            ),
+            contentPadding = PaddingValues(8.dp),
+            modifier = Modifier.width(90.dp),
+        ) {
+            Text(
+                "Reroll (${nbRerolls})",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
         }
-        Button(onClick = onModMinus) {
-            Text("-")
+        Button(
+            onClick = onModMinus,
+            contentPadding = PaddingValues(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = ButtonColor),
+            modifier = Modifier.width(40.dp),
+        ) {
+            Text("-", textAlign = TextAlign.Center)
         }
         DisplayModIndicator(nbMod)
-        Button(onClick = onModPlus) {
-            Text("+")
+        Button(
+            onClick = onModPlus,
+            contentPadding = PaddingValues(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = ButtonColor),
+            modifier = Modifier.width(40.dp),
+        ) {
+            Text("+", textAlign = TextAlign.Center)
         }
-        Button(onClick = onEndTurn) {
-            Text("End Turn")
+        Button(
+            onClick = onEndTurn,
+            contentPadding = PaddingValues(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = ButtonColor),
+            modifier = Modifier.width(90.dp),
+        ) {
+            Text(
+                "End Turn",
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
@@ -395,8 +432,9 @@ fun DisplaySection(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
+            .padding(2.dp)
             .clip(shape = RoundedCornerShape(16.dp))
-            .border(4.dp, Color.Gray, shape = RoundedCornerShape(16.dp))
+            .background(SectionBackgroundColor)
     ) {
         content()
 
@@ -409,7 +447,7 @@ fun DisplaySection(
                     .zIndex(-1f),
                 fontStyle = FontStyle.Italic,
                 fontSize = 16.sp,
-                color = Color.Red.copy(alpha = 0.7f),
+                color = SectionTextColor,
             )
         }
     }
@@ -427,52 +465,62 @@ fun DisplayCard(
     drawBorder: Boolean = false,
     onCardDoubleClick: ((DetailCard) -> Unit)? = null,
 ) {
-    val borderColor = if (drawBorder && usable) UsableCardBorderColor else CardColor
+    val borderColor = if (drawBorder && usable) UsableCardBorderColor else Color.White
+
     val interactionSource = remember { MutableInteractionSource() }
     val doubleClickCallback: (() -> Unit)? = if (onCardDoubleClick != null) {
         { onCardDoubleClick(card) }
     } else null
     UpdateViewConfiguration(doubleTapTimeoutMillis = 80) {
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                .border(4.dp, borderColor, shape = RoundedCornerShape(8.dp))
-                .combinedClickable(
-                    onClick = { if (usable) onCardClick(card) },
-                    onLongClick = { onCardLongClick(card) },
-                    onDoubleClick = doubleClickCallback,
-                    interactionSource = interactionSource,
-                    indication = null
-                ),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            shadowElevation = 4.dp,
         ) {
-            val name = card.name.removeSuffix(" Project")
-            val titleFontSize: TextUnit = when (name.length) {
-                in 0..9 -> 20.sp
-                in 10..14 -> 18.sp
-                else -> 16.sp
-            }
-            Text(
-                name,
-                modifier = Modifier
-                    .padding(top = 2.dp)
-                    .weight(1f)
-                    .wrapContentHeight(align = Alignment.CenterVertically),
-                fontSize = titleFontSize,
-            )
-            if (subtext != null) {
-                val alignment = if ("\n" in subtext) Alignment.Top else Alignment.CenterVertically
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .border(
+                        if (drawBorder && usable) 1.dp else 0.dp,
+                        borderColor,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .combinedClickable(
+                        onClick = { if (usable) onCardClick(card) },
+                        onLongClick = { onCardLongClick(card) },
+                        onDoubleClick = doubleClickCallback,
+                        interactionSource = interactionSource,
+                        indication = null
+                    ),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                val name = card.name.removeSuffix(" Project")
+                val titleFontSize: TextUnit = when (name.length) {
+                    in 0..9 -> 20.sp
+                    in 10..14 -> 18.sp
+                    else -> 16.sp
+                }
                 Text(
-                    subtext,
-                    fontSize = 14.sp,
-                    lineHeight = 16.sp,
+                    name,
                     modifier = Modifier
+                        .padding(top = 2.dp)
                         .weight(1f)
-                        .wrapContentHeight(align = alignment),
-                    textAlign = TextAlign.Center,
+                        .wrapContentHeight(align = Alignment.CenterVertically),
+                    fontSize = titleFontSize,
                 )
+                if (subtext != null) {
+                    val alignment =
+                        if ("\n" in subtext) Alignment.Top else Alignment.CenterVertically
+                    Text(
+                        subtext,
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp,
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentHeight(align = alignment),
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }
@@ -638,17 +686,21 @@ fun DisplayDice(
 fun DisplayModIndicator(nbMod: Int, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = "$nbMod",
             fontSize = 20.sp,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            color = Color.White,
         )
         Text(
             text = "Mod",
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            color = Color.White,
         )
     }
 }

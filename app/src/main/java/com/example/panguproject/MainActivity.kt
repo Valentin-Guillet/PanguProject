@@ -14,6 +14,7 @@ import com.example.panguproject.ui.theme.PanguProjectTheme
 /* TODO:
 - make game savable
 - remove reset building and implement real reset
+- check recomposition
 - better UI
 */
 

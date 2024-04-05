@@ -34,11 +34,11 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PanguProjectApp() {
     PanguProjectTheme {
-//        val navController = rememberNavController()
-//        NavHost(navController, startDestination = "menu") {
-//            composable("menu") { MenuScreen(navController) }
-//            composable("game") { GameScreen(navController) }
-//        }
-        GameScreen(null)
+        val navController = rememberNavController()
+        NavHost(navController, startDestination = "menu") {
+            composable("menu") { MenuScreen(navController) }
+            composable("game") { GameScreen(navController) }
+        }
+//        GameScreen(null)
     }
 }

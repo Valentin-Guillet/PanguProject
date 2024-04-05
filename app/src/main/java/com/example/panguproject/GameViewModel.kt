@@ -6,6 +6,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class GameViewModel : ViewModel() {
+    private val _gameOver = MutableStateFlow(false)
+    val gameOver: StateFlow<Boolean> = _gameOver.asStateFlow()
+
     private val _score = MutableStateFlow(0)
     val score: StateFlow<Int> = _score.asStateFlow()
 
@@ -54,6 +57,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun resetGame() {
+        _gameOver.value = false
         _score.value = 0
         _turn.value = 0
         _nbMod.value = 0
@@ -73,6 +77,11 @@ class GameViewModel : ViewModel() {
     }
 
     fun nextTurn() {
+        if (_turn.value == 10) {
+            _gameOver.value = true
+            return
+        }
+
         nbDiceEndOfTurn = _diceList.value.size
         hasBasicDiceLeft = _diceList.value.any { !it.stored }
 
@@ -185,6 +194,9 @@ class GameViewModel : ViewModel() {
         _projectList.value = newProjectList
 
         _score.value += 3 * (11 - turn.value) + 1
+
+        if (_projectList.value.all { it.built })
+            _gameOver.value = true
     }
 
     fun drawBlueprint() {
@@ -259,7 +271,7 @@ class GameViewModel : ViewModel() {
     private fun modifySelectedDice(delta: Int, force: Boolean = false) {
         val selectedDice = getSelectedDice()
         if (selectedDice.size != 1) {
-            _logMsg.value = "Only one dice can be modified"
+            _logMsg.value = "Too many dice"
             return
         }
 

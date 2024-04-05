@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,6 +59,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -74,6 +76,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
     var displayCardInfoList: List<DetailCard>? by remember { mutableStateOf(null) }
     var displayCardInfoIndex: Int by remember { mutableIntStateOf(0) }
 
+    val gameOver: Boolean by gameViewModel.gameOver.collectAsState()
     val score: Int by gameViewModel.score.collectAsState()
     val turn: Int by gameViewModel.turn.collectAsState()
     val diceList: List<Dice> by gameViewModel.diceList.collectAsState()
@@ -148,6 +151,16 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 onEndTurn = gameViewModel::nextTurn,
                 modifier = Modifier.alpha(focusAlpha),
             )
+        }
+
+        if (gameOver) {
+            DisplayGameOver(
+                navController,
+                score,
+                success = projectList.all { it.built },
+                gameViewModel::resetGame
+            )
+
         }
 
         if (displayCardInfoList != null) {
@@ -497,7 +510,7 @@ fun DisplayCardInfo(
         onClick = { onClick(card) },
         modifier = modifier
             .fillMaxSize()
-            .padding(vertical = 30.dp, horizontal = 30.dp),
+            .padding(30.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
     ) {
         val name = if (card.name.length > 15) card.name.replace(" ", "\n") else card.name
@@ -640,6 +653,69 @@ fun DisplayModIndicator(nbMod: Int, modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun DisplayGameOver(
+    navController: NavController?,
+    score: Int,
+    success: Boolean,
+    resetGame: () -> Unit,
+) {
+    val title = if (success) "Congratulations" else "Game Over"
+    Dialog(
+        onDismissRequest = resetGame,
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(30.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 42.sp,
+                    modifier = Modifier.padding(top = 32.dp),
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = "Your score is $score.",
+                    fontSize = 24.sp,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    Button(
+                        onClick = { navController?.navigate("menu") },
+                        modifier = Modifier
+                            .height(60.dp)
+                            .width(100.dp),
+                    ) {
+                        Text("Back", fontSize = 18.sp, textAlign = TextAlign.Center)
+                    }
+                    Button(
+                        onClick = resetGame,
+                        modifier = Modifier
+                            .height(60.dp)
+                            .width(100.dp),
+                    ) {
+                        Text("Play\nagain", fontSize = 18.sp, textAlign = TextAlign.Center)
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun UpdateViewConfiguration(
@@ -651,14 +727,17 @@ fun UpdateViewConfiguration(
 ) {
     fun ViewConfiguration.updateViewConfiguration() = object : ViewConfiguration {
         override val longPressTimeoutMillis
-            get() = longPressTimeoutMillis ?: this@updateViewConfiguration.longPressTimeoutMillis
+            get() = longPressTimeoutMillis
+                ?: this@updateViewConfiguration.longPressTimeoutMillis
 
         override val doubleTapTimeoutMillis
-            get() = doubleTapTimeoutMillis ?: this@updateViewConfiguration.doubleTapTimeoutMillis
+            get() = doubleTapTimeoutMillis
+                ?: this@updateViewConfiguration.doubleTapTimeoutMillis
 
         override val doubleTapMinTimeMillis
             get() =
-                doubleTapMinTimeMillis ?: this@updateViewConfiguration.doubleTapMinTimeMillis
+                doubleTapMinTimeMillis
+                    ?: this@updateViewConfiguration.doubleTapMinTimeMillis
 
         override val touchSlop: Float
             get() = touchSlop ?: this@updateViewConfiguration.touchSlop

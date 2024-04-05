@@ -1,6 +1,7 @@
 package com.example.panguproject
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -40,8 +41,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -67,7 +70,6 @@ import com.example.panguproject.ui.theme.WildDiceColor
 @Composable
 fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = viewModel()) {
     var displayCardInfo: DetailCard? by remember { mutableStateOf(null) }
-//    var displayCardInfo: DetailCard? by remember { mutableStateOf(gameViewModel.projectList.value[0]) }
 
     val turn: Int by gameViewModel.turn.collectAsState()
     val diceList: List<Dice> by gameViewModel.diceList.collectAsState()
@@ -171,16 +173,29 @@ fun GameProjectSection(
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             projects.forEach {
-                @Suppress("UNCHECKED_CAST") DisplayCard(
-                    it,
-                    !it.built,
-                    onProjectClick as (DetailCard) -> Unit,
-                    onProjectLongClick as (DetailCard) -> Unit,
-                    modifier = Modifier
-                        .weight(1f)
-                        .alpha(if (it.built) 0.5f else 1f),
-                    subtext = it.shortCostDescription,
-                )
+                Box(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    @Suppress("UNCHECKED_CAST") DisplayCard(
+                        it,
+                        !it.built,
+                        onProjectClick as (DetailCard) -> Unit,
+                        onProjectLongClick as (DetailCard) -> Unit,
+                        modifier = Modifier
+                            .alpha(if (it.built) 0.5f else 1f),
+                        subtext = it.shortCostDescription,
+                    )
+
+                    if (it.built) {
+                        Image(
+                            imageVector = ImageVector.vectorResource(R.drawable.icons8_flat_checkmark),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(120.dp)
+                        )
+                    }
+                }
             }
         }
     }

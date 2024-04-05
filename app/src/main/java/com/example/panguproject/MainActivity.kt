@@ -13,7 +13,6 @@ import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
 - make them swipable
-- big green validation mark when project build
 - undo button ?
 - dark mode
 - log line that displays when error on buy

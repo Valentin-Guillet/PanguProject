@@ -42,13 +42,13 @@ class Blueprint(
 }
 
 val defaultBuildingsList: List<Blueprint> = listOf(
-    Blueprint(
-        "Reset",
-        effectDescription = "Reset debug",
-        shortEffectDescription = "Reset debug",
-        clickCostFunction = { true },
-        onClick = GameViewModel::resetGame,
-    ),
+//    Blueprint(
+//        "Reset",
+//        effectDescription = "Reset debug",
+//        shortEffectDescription = "Reset debug",
+//        clickCostFunction = { true },
+//        onClick = GameViewModel::resetGame,
+//    ),
     Blueprint(
         "Laboratory",
         effectDescription = "Consume a pair of dice to draw a blueprint.",
@@ -376,7 +376,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
         effectDescription = "On start of turn: roll one extra basic die per project built.",
-        shortEffectDescription = "Start of turn:\n+1 die / project built",
+        shortEffectDescription = "Start of turn:\n+1 die / project",
         costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
         onStartTurn = {
             val n = it.projectList.value.count { project -> project.built }

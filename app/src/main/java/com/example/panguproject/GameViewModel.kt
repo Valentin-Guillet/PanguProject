@@ -40,7 +40,7 @@ class GameViewModel : ViewModel() {
     private lateinit var remainingBlueprints: List<Blueprint>
     private var blueprintIndex: Int = allBlueprintsList.size
 
-    private val initNbBlueprints = 4
+    private val initNbBlueprints = 3
     var blueprintBuilt = false
         private set
     var nbDiceEndOfTurn = 0
@@ -91,7 +91,7 @@ class GameViewModel : ViewModel() {
         _diceList.value = _diceList.value.filter { it.stored }.toMutableList()
         _diceList.value = _diceList.value.map { it.copy(selected = false) }.toMutableList()
 
-        repeat(16) { rollDice() }
+        repeat(4) { rollDice() }
 
         val newBuildingList = _buildingList.value.toMutableList().map { it.copy(used = false) }
         _buildingList.value = newBuildingList.toMutableList()
@@ -117,12 +117,12 @@ class GameViewModel : ViewModel() {
         _diceList.value.add(Dice(dieValue, wild, fixed, stored))
     }
 
-    fun decreaseDiceValue(force: Boolean = false) {
-        modifySelectedDice(-1, force = force)
+    fun decreaseDiceValue() {
+        modifySelectedDice(-1)
     }
 
-    fun increaseDiceValue(force: Boolean = false) {
-        modifySelectedDice(1, force = force)
+    fun increaseDiceValue() {
+        modifySelectedDice(1)
     }
 
     fun gainMod(delta: Int) {
@@ -268,7 +268,7 @@ class GameViewModel : ViewModel() {
     }
 
 
-    private fun modifySelectedDice(delta: Int, force: Boolean = false) {
+    private fun modifySelectedDice(delta: Int) {
         val selectedDice = getSelectedDice()
         if (selectedDice.size != 1) {
             _logMsg.value = "Too many dice"
@@ -276,11 +276,6 @@ class GameViewModel : ViewModel() {
         }
 
         val dice = selectedDice[0]
-
-        if (dice.fixed && !force) {
-            _logMsg.value = "Can't modify fixed dice"
-            return
-        }
 
         if (!dice.wild && _nbMod.value == 0) {
             _logMsg.value = "No more modifiers"

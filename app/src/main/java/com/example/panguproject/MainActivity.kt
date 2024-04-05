@@ -12,11 +12,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- game over
 - make game savable
 - remove reset building and implement real reset
-- undo button ?
-- dark mode
+- better UI
 */
 
 @ExperimentalMaterial3Api

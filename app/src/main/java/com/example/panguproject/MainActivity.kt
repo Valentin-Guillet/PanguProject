@@ -12,9 +12,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- log line that displays when error on buy
-- remove reset building and implement real reset
+- game over
 - make game savable
+- remove reset building and implement real reset
 - undo button ?
 - dark mode
 */

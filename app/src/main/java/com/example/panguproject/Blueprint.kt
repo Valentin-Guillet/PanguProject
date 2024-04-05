@@ -386,7 +386,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     Blueprint(
         "Tunneler",
         costDescription = "Two pairs of dice in a row.",
-        shortCostDescription = "Two pairs in a row",
+        shortCostDescription = "Two pairs\nin a row",
         effectDescription = "On click: flip a selected dice to its opposite value (1 -> 6, 2 -> 5...).",
         shortEffectDescription = "Click: flip a die",
         costFunction = { Dice.isOfAKindInARow(2, 2)(it.getSelectedDice()) },

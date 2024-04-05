@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -83,6 +82,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
     val projectList: List<Project> by gameViewModel.projectList.collectAsState()
     val buildingList: List<Blueprint> by gameViewModel.buildingList.collectAsState()
     val blueprintList: List<Blueprint> by gameViewModel.blueprintList.collectAsState()
+    val logMsg: String by gameViewModel.logMsg.collectAsState()
 
     fun cardViewFactory(cards: List<DetailCard>): (DetailCard) -> Unit {
         return fun(card: DetailCard) {
@@ -101,8 +101,12 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 .padding(horizontal = 4.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            GameInfoSection(score, turn)
-            Spacer(modifier = Modifier.height(4.dp))
+            GameInfoSection(
+                score,
+                turn,
+                modifier = Modifier.height(24.dp),
+                logMsg = logMsg,
+            )
             GameProjectSection(
                 projectList,
                 onProjectClick = gameViewModel::buildProject,
@@ -157,17 +161,24 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
 }
 
 @Composable
-fun GameInfoSection(score: Int, turn: Int, modifier: Modifier = Modifier) {
+fun GameInfoSection(
+    score: Int,
+    turn: Int,
+    modifier: Modifier = Modifier,
+    logMsg: String? = null,
+) {
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 16.dp),
+            .fillMaxSize()
+            .padding(start = 10.dp, end = 10.dp, top = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "Score  $score")
-        Text(text = "Pangu Project", fontSize = 26.sp)
-        Text(text = "Turn  $turn / 10")
+        Text(text = "Score: $score", fontSize = 16.sp)
+        if (logMsg != null) {
+            Text(text = logMsg, fontSize = 16.sp)
+        }
+        Text(text = "Turn  $turn / 10", fontSize = 16.sp)
     }
 }
 
@@ -617,7 +628,7 @@ fun DisplayModIndicator(nbMod: Int, modifier: Modifier = Modifier) {
     ) {
         Text(
             text = "$nbMod",
-            fontSize = 16.sp,
+            fontSize = 20.sp,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Text(

@@ -31,6 +31,9 @@ class GameViewModel : ViewModel() {
     private val _buildingList = MutableStateFlow(mutableListOf<Blueprint>())
     val buildingList: StateFlow<List<Blueprint>> = _buildingList.asStateFlow()
 
+    private val _logMsg = MutableStateFlow("")
+    val logMsg: StateFlow<String> = _logMsg.asStateFlow()
+
     private lateinit var remainingBlueprints: List<Blueprint>
     private var blueprintIndex: Int = allBlueprintsList.size
 
@@ -51,25 +54,21 @@ class GameViewModel : ViewModel() {
     }
 
     fun resetGame() {
-        _buildingList.value.clear()
-
-        val newProjectList = allProjectsList.shuffled().take(3).toMutableList()
-        _projectList.value = newProjectList
-
-        for (building in defaultBuildingsList)
-            _buildingList.value.add(building)
-
+        _score.value = 0
+        _turn.value = 0
+        _nbMod.value = 0
         blueprintIndex = allBlueprintsList.size
+        baseModDelta = 1
+        wrappingAllowed = false
+
+        _projectList.value = allProjectsList.shuffled().take(3).toMutableList()
+        _buildingList.value = defaultBuildingsList.toMutableList()
 
         _blueprintList.value.clear()
         repeat(initNbBlueprints) { _blueprintList.value.add(getNextBlueprint()) }
 
         _diceList.value.clear()
 
-        wrappingAllowed = false
-        baseModDelta = 1
-        _nbMod.value = 0
-        _turn.value = 0
         nextTurn()
     }
 
@@ -88,9 +87,10 @@ class GameViewModel : ViewModel() {
         val newBuildingList = _buildingList.value.toMutableList().map { it.copy(used = false) }
         _buildingList.value = newBuildingList.toMutableList()
 
-        for (building in _buildingList.value) {
+        for (building in _buildingList.value)
             building.onStartTurn?.invoke(this)
-        }
+
+        _logMsg.value = ""
 
         blueprintBuilt = false
         usedWildDice = false
@@ -103,6 +103,7 @@ class GameViewModel : ViewModel() {
         fixed: Boolean = false,
         stored: Boolean = false,
     ) {
+        _logMsg.value = ""
         val dieValue = value ?: (1..6).random()
         _diceList.value.add(Dice(dieValue, wild, fixed, stored))
     }
@@ -116,6 +117,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun gainMod(delta: Int) {
+        _logMsg.value = ""
         _nbMod.value += delta
     }
 
@@ -124,6 +126,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun consumeDice() {
+        _logMsg.value = ""
         val (selectedDice, unselectedDice) = _diceList.value.partition { it.selected }
         usedWildDice = usedWildDice || selectedDice.any { it.wild }
 
@@ -131,6 +134,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
+        _logMsg.value = ""
         val newDiceList = _diceList.value.toMutableList()
         if (selectOnly)
             newDiceList.forEach { it.selected = false }
@@ -146,7 +150,11 @@ class GameViewModel : ViewModel() {
     }
 
     fun rerollDice(force: Boolean = false, useReroll: Boolean = true) {
-        if (_diceList.value.none { it.selected && (force || !it.fixed) }) return
+        if (_diceList.value.none { it.selected && (force || !it.fixed) }) {
+            _logMsg.value = "No basic dice to reroll"
+            return
+        }
+        _logMsg.value = ""
 
         val newDiceList = _diceList.value.toMutableList()
         for (i in 0 until newDiceList.size) {
@@ -166,9 +174,12 @@ class GameViewModel : ViewModel() {
     fun buildProject(project: Project) {
         val newProjectList = _projectList.value.toMutableList()
         val projectIndex = newProjectList.indexOf(project)
-        if (projectIndex == -1 || !project.costFunction(this))
+        if (projectIndex == -1 || !project.costFunction(this)) {
+            _logMsg.value = "Invalid requirements"
             return
+        }
 
+        _logMsg.value = ""
         consumeDice()
         newProjectList[projectIndex] = project.copy(built = true)
         _projectList.value = newProjectList
@@ -180,16 +191,22 @@ class GameViewModel : ViewModel() {
         val newBlueprintList = _blueprintList.value.toMutableList()
         val newBlueprint = getNextBlueprint()
         if (newBlueprintList.size >= 12) {
+            _logMsg.value = "Too many blueprints"
             gainMod(baseModDelta)
             return
         }
+
+        _logMsg.value = ""
         newBlueprintList.add(newBlueprint)
         _blueprintList.value = newBlueprintList
     }
 
     fun buildBlueprint(blueprint: Blueprint) {
-        if (!blueprint.costFunction?.invoke(this)!!)
+        if (!blueprint.costFunction?.invoke(this)!!) {
+            _logMsg.value = "Invalid requirements"
             return
+        }
+        _logMsg.value = ""
 
         consumeDice()
 
@@ -218,8 +235,11 @@ class GameViewModel : ViewModel() {
 
     fun useBuilding(blueprint: Blueprint) {
         val selectedDice = getSelectedDice()
-        if (!blueprint.clickCostFunction?.invoke(selectedDice)!!)
+        if (!blueprint.clickCostFunction?.invoke(selectedDice)!!) {
+            _logMsg.value = "Invalid requirements"
             return
+        }
+        _logMsg.value = ""
 
         blueprint.onClick?.invoke(this)
 
@@ -238,16 +258,23 @@ class GameViewModel : ViewModel() {
 
     private fun modifySelectedDice(delta: Int, force: Boolean = false) {
         val selectedDice = getSelectedDice()
-        if (selectedDice.size != 1)
+        if (selectedDice.size != 1) {
+            _logMsg.value = "Only one dice can be modified"
             return
+        }
 
         val dice = selectedDice[0]
 
-        if (dice.fixed && !force)
+        if (dice.fixed && !force) {
+            _logMsg.value = "Can't modify fixed dice"
             return
+        }
 
-        if (!dice.wild && _nbMod.value == 0)
+        if (!dice.wild && _nbMod.value == 0) {
+            _logMsg.value = "No more modifiers"
             return
+        }
+        _logMsg.value = ""
 
         if (!wrappingAllowed && (dice.value + delta < 1 || dice.value + delta > 6))
             return

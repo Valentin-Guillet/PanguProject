@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -69,7 +72,8 @@ import com.example.panguproject.ui.theme.WildDiceColor
 @ExperimentalMaterial3Api
 @Composable
 fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = viewModel()) {
-    var displayCardInfo: DetailCard? by remember { mutableStateOf(null) }
+    var displayCardInfoList: List<DetailCard>? by remember { mutableStateOf(null) }
+    var displayCardInfoIndex: Int by remember { mutableIntStateOf(0) }
 
     val score: Int by gameViewModel.score.collectAsState()
     val turn: Int by gameViewModel.turn.collectAsState()
@@ -80,10 +84,17 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
     val buildingList: List<Blueprint> by gameViewModel.buildingList.collectAsState()
     val blueprintList: List<Blueprint> by gameViewModel.blueprintList.collectAsState()
 
+    fun cardViewFactory(cards: List<DetailCard>): (DetailCard) -> Unit {
+        return fun(card: DetailCard) {
+            displayCardInfoList = cards
+            displayCardInfoIndex = cards.indexOf(card)
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize()
     ) {
-        val focusAlpha = if (displayCardInfo != null) 0.5f else 1f
+        val focusAlpha = if (displayCardInfoList != null) 0.5f else 1f
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -95,7 +106,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             GameProjectSection(
                 projectList,
                 onProjectClick = gameViewModel::buildProject,
-                onProjectLongClick = { displayCardInfo = it },
+                onProjectLongClick = { cardViewFactory(projectList)(it) },
                 modifier = Modifier
                     .weight(0.9f)
                     .alpha(focusAlpha),
@@ -103,7 +114,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             GameBuildingSection(
                 buildingList,
                 onBlueprintClick = gameViewModel::useBuilding,
-                onBlueprintLongClick = { displayCardInfo = it },
+                onBlueprintLongClick = { cardViewFactory(buildingList)(it) },
                 modifier = Modifier
                     .weight(2f)
                     .alpha(focusAlpha),
@@ -111,7 +122,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             GameBlueprintSection(
                 blueprintList,
                 onBlueprintClick = gameViewModel::buildBlueprint,
-                onBlueprintLongClick = { displayCardInfo = it },
+                onBlueprintLongClick = { cardViewFactory(blueprintList)(it) },
                 onBlueprintDoubleClick = gameViewModel::discardBlueprint,
                 modifier = Modifier
                     .weight(2f)
@@ -135,10 +146,11 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             )
         }
 
-        if (displayCardInfo != null) {
-            DisplayCardInfo(
-                displayCardInfo!!,
-                onClick = { displayCardInfo = null },
+        if (displayCardInfoList != null) {
+            CardSlider(
+                cards = displayCardInfoList!!,
+                index = displayCardInfoIndex,
+                onCardClick = { displayCardInfoList = null; displayCardInfoIndex = 0 },
             )
         }
     }
@@ -209,9 +221,8 @@ fun GameBuildingSection(
     onBlueprintLongClick: (Blueprint) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val buildingList = buildings.sortedBy { it.onClick == null }
     DisplaySection(name = "Colony", modifier = modifier) {
-        val nbRows = (buildingList.size / 3) + 1
+        val nbRows = (buildings.size / 3) + 1
         val colWidth: Dp = (maxWidth - 24.dp) / 3
         Column(
             modifier = Modifier
@@ -225,9 +236,9 @@ fun GameBuildingSection(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    val nbCols = if (rowIndex == nbRows - 1) buildingList.size % 3 else 3
+                    val nbCols = if (rowIndex == nbRows - 1) buildings.size % 3 else 3
                     repeat(nbCols) { colIndex ->
-                        val blueprint = buildingList[rowIndex * 3 + colIndex]
+                        val blueprint = buildings[rowIndex * 3 + colIndex]
                         @Suppress("UNCHECKED_CAST") DisplayCard(
                             card = blueprint,
                             usable = blueprint.usable,
@@ -440,6 +451,27 @@ fun DisplayCard(
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun CardSlider(
+    cards: List<DetailCard>,
+    index: Int,
+    onCardClick: (DetailCard) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val state = rememberPagerState(
+        pageCount = { cards.size },
+        initialPage = index,
+    )
+    HorizontalPager(state = state) { cardId ->
+        DisplayCardInfo(
+            card = cards[cardId],
+            onClick = onCardClick,
+            modifier = modifier
+        )
     }
 }
 

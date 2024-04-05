@@ -199,6 +199,7 @@ class GameViewModel : ViewModel() {
 
         val newBuildingList = _buildingList.value.toMutableList()
         newBuildingList.add(blueprint)
+        newBuildingList.sortBy { it.onClick == null }
         _buildingList.value = newBuildingList
 
         blueprint.onBuy?.invoke(this)

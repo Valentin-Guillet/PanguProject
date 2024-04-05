@@ -12,7 +12,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- make info card swipable
 - log line that displays when error on buy
 - remove reset building and implement real reset
 - make game savable

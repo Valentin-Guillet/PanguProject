@@ -13,9 +13,11 @@ import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
 - make game savable
-- remove reset building and implement real reset
 - check recomposition
-- better UI
+- better DetailCard UI
+- change purple colors to theme
+- make real menu page
+- make an icon
 */
 
 @ExperimentalMaterial3Api

@@ -159,7 +159,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun rerollDice(force: Boolean = false, useReroll: Boolean = true) {
-        if (_diceList.value.none { it.selected && (force || !it.fixed) }) {
+        if (_diceList.value.none { it.selected && !it.wild && (force || !it.fixed) }) {
             _logMsg.value = "No basic dice to reroll"
             return
         }
@@ -167,7 +167,8 @@ class GameViewModel : ViewModel() {
 
         val newDiceList = _diceList.value.toMutableList()
         for (i in 0 until newDiceList.size) {
-            if (newDiceList[i].selected && (force || !newDiceList[i].fixed))
+            val dice = newDiceList[i]
+            if (dice.selected && !dice.wild && (force || !dice.fixed))
                 newDiceList[i] = newDiceList[i].copy(value = (1..6).random())
         }
         _diceList.value = newDiceList

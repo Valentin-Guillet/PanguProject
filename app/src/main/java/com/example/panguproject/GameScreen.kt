@@ -471,7 +471,7 @@ fun DisplayCard(
     val doubleClickCallback: (() -> Unit)? = if (onCardDoubleClick != null) {
         { onCardDoubleClick(card) }
     } else null
-    UpdateViewConfiguration(doubleTapTimeoutMillis = 80) {
+    UpdateViewConfiguration(doubleTapTimeoutMillis = 100) {
         Surface(
             shape = RoundedCornerShape(8.dp),
             shadowElevation = 4.dp,
@@ -646,7 +646,7 @@ fun DiceStorage(
     }
 }
 
-const val DICE_SIZE: Int = 32
+private const val DICE_SIZE: Int = 32
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

@@ -144,9 +144,9 @@ class GameViewModel : ViewModel() {
 
     fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
         _logMsg.value = ""
-        val newDiceList = _diceList.value.toMutableList()
+        var newDiceList = _diceList.value.toMutableList()
         if (selectOnly)
-            newDiceList.forEach { it.selected = false }
+            newDiceList = newDiceList.map { it.copy(selected = false) }.toMutableList()
         val diceIndex: Int = newDiceList.indexOf(clickedDice)
         if (diceIndex == -1)
             return

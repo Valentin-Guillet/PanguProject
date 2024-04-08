@@ -5,7 +5,7 @@ class Project(
     costDescription: String? = null,
     shortCostDescription: String? = null,
     val costFunction: (gameViewModel: GameViewModel) -> Boolean,
-    var built: Boolean = false,
+    val built: Boolean = false,
 ) : DetailCard(
     name,
     costDescription = costDescription,

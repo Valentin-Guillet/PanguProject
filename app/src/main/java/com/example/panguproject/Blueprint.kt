@@ -52,14 +52,14 @@ val defaultBuildingsList: List<Blueprint> = listOf(
     Blueprint(
         "Laboratory",
         effectDescription = "Consume a pair of dice to draw a blueprint.",
-        shortEffectDescription = "Pair ->\nDraw a blueprint",
+        shortEffectDescription = "Pair →\nDraw a blueprint",
         clickCostFunction = { Dice.isOfAKind(2)(it) },
         onClick = { it.consumeDice(); it.drawBlueprint() },
     ),
     Blueprint(
         "Forge",
         effectDescription = "Consume three in a row to gain a stored wild die.",
-        shortEffectDescription = "Three in a row ->\nStored wild die",
+        shortEffectDescription = "Three in a row →\nStored wild die",
         clickCostFunction = { Dice.isInARow(3)(it) },
         onClick = { it.consumeDice(); it.rollDice(wild = true, stored = true) },
     ),
@@ -71,7 +71,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
         effectDescription = "On click: turn a die of value 1 into a wild die.",
-        shortEffectDescription = "Click:\n1 -> wild",
+        shortEffectDescription = "Click:\n1 → wild",
         costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
         clickCostFunction = { Dice.isSet(listOf(1))(it) },
         onClick = { it.consumeDice(); it.rollDice(1, wild = true) },
@@ -100,7 +100,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
         effectDescription = "On end of turn: if at least two dice remain, roll two extra basic dice on the next turn.",
-        shortEffectDescription = "EOT: ≥2 dice ->\n+2 basic dice",
+        shortEffectDescription = "EOT: ≥2 dice →\n+2 basic dice",
         costFunction = { Dice.isOfAKind(4)(it.getSelectedDice()) },
         onStartTurn = {
             if (it.nbDiceEndOfTurn >= 2) {
@@ -123,7 +123,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Five dice in a row.",
         shortCostDescription = "Five in a row",
         effectDescription = "On click: generate a fixed copy of a selected die.",
-        shortEffectDescription = "Click: 1 die ->\nfixed copy",
+        shortEffectDescription = "Click: 1 die →\nfixed copy",
         costFunction = { Dice.isInARow(5)(it.getSelectedDice()) },
         clickCostFunction = { it.size == 1 },
         onClick = { it.rollDice(it.getSelectedDice()[0].value, fixed = true) },
@@ -134,7 +134,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of value 1, 3 and 5.",
         shortCostDescription = "1, 3, 5",
         effectDescription = "On click: fix a selected die and store it.",
-        shortEffectDescription = "Click: a die ->\nfix and store",
+        shortEffectDescription = "Click: a die →\nfix and store",
         costFunction = { Dice.isSet(listOf(1, 3, 5))(it.getSelectedDice()) },
         clickCostFunction = { it.size == 1 },
         onClick = { gameViewModel ->
@@ -169,7 +169,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of value 4, 5, 6.",
         shortCostDescription = "4, 5, 6",
         effectDescription = "On click: consume a pair to gain a stored wild die.",
-        shortEffectDescription = "Click: a pair ->\nstored wild die",
+        shortEffectDescription = "Click: a pair →\nstored wild die",
         costFunction = { Dice.isSet(listOf(4, 5, 6))(it.getSelectedDice()) },
         clickCostFunction = { Dice.isOfAKind(2)(it) },
         onClick = { it.consumeDice(); it.rollDice(wild = true, stored = true) },
@@ -179,7 +179,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "A set of dice that amounts to exactly 20.",
         shortCostDescription = "Sum = 20",
         effectDescription = "On click: split a die into two dice.",
-        shortEffectDescription = "Click: a die->\ntwo dice w/ same",
+        shortEffectDescription = "Click: a die →\ntwo dice w/ same",
         costFunction = { Dice.sumsTo(20)(it.getSelectedDice()) },
         clickCostFunction = { it.size == 1 && it[0].value > 1 },
         onClick = {
@@ -194,7 +194,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "A set of dice that amounts to exactly 12.",
         shortCostDescription = "Sum = 12",
         effectDescription = "On click: combine two selected dice into a die of their sum.",
-        shortEffectDescription = "Click: 2 dice->\na die of their sum",
+        shortEffectDescription = "Click: 2 dice →\na die of their sum",
         costFunction = { Dice.sumsTo(12)(it.getSelectedDice()) },
         clickCostFunction = { it.size == 2 && it.sumOf { dice -> dice.value } <= 6 },
         onClick = {
@@ -282,7 +282,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Two pairs of dice in a row. Example: 2, 2, 3, 3.",
         shortCostDescription = "Two pairs\nin a row",
         effectDescription = "On click: reroll all selected basic dice.",
-        shortEffectDescription = "Click: reroll all\nselected basic dice",
+        shortEffectDescription = "Click: reroll all\nselected dice",
         costFunction = { Dice.isOfAKindInARow(2, 2)(it.getSelectedDice()) },
         clickCostFunction = { it.any { dice -> !dice.fixed && !dice.wild } },
         onClick = { it.rerollDice(useReroll = false) },
@@ -292,7 +292,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "A set of dice that amounts to exactly 25.",
         shortCostDescription = "Sum = 25",
         effectDescription = "On click: consume a die to generate two fixed dice of value +1 and -1.",
-        shortEffectDescription = "Click: 1 die->\n2 fixed +1/-1",
+        shortEffectDescription = "Click: 1 die →\n2 fixed +1/-1",
         costFunction = { Dice.sumsTo(25)(it.getSelectedDice()) },
         clickCostFunction = { it.size == 1 && 1 < it[0].value && it[0].value < 6 },
         onClick = {
@@ -307,7 +307,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "A set of dice that amounts to exactly 16.",
         shortCostDescription = "Sum = 16",
         effectDescription = "On click: equalize the value of two selected dice.",
-        shortEffectDescription = "Click: 2 dice->\nequalize",
+        shortEffectDescription = "Click: 2 dice →\nequalize",
         costFunction = { Dice.sumsTo(16)(it.getSelectedDice()) },
         clickCostFunction = { it.size == 2 && it.none { dice -> dice.fixed || dice.wild } },
         onClick = {
@@ -322,7 +322,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of a kind.",
         shortCostDescription = "Three of a kind",
         effectDescription = "When spending a wild die: roll an extra basic die at the start of next turn.",
-        shortEffectDescription = "Use wild die ->\n+1 die next turn",
+        shortEffectDescription = "Use wild die →\n+1 die next turn",
         costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
         onStartTurn = { if (it.usedWildDice) it.rollDice() },
     ),
@@ -342,7 +342,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
         effectDescription = "On end of turn: if all non-stored diced have been used, gain two basic dice next turn.",
-        shortEffectDescription = "EOT: 0 dice ->\n+2 dice next turn",
+        shortEffectDescription = "EOT: 0 dice →\n+2 dice next turn",
         costFunction = { Dice.isOfAKind(4)(it.getSelectedDice()) },
         onStartTurn = {
             if (!it.hasBasicDiceLeft) {
@@ -367,7 +367,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of a kind.",
         shortCostDescription = "Three of a kind",
         effectDescription = "When built: gain +2 MOD.\nDice might be MODed from 1 to 6 and 6 to 1.",
-        shortEffectDescription = "Can MOD 1 <-> 6",
+        shortEffectDescription = "Can MOD 1 ↔ 6",
         costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
         onBuy = { it.gainMod(2); it.allowWrapping() },
     ),
@@ -376,7 +376,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
         effectDescription = "On start of turn: roll one extra basic die per project built.",
-        shortEffectDescription = "Start of turn:\n+1 die / project",
+        shortEffectDescription = "Start of turn:\n+1 die /-> project",
         costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
         onStartTurn = {
             val n = it.projectList.value.count { project -> project.built }
@@ -387,10 +387,10 @@ val allBlueprintsList: List<Blueprint> = listOf(
         "Tunneler",
         costDescription = "Two pairs of dice in a row.",
         shortCostDescription = "Two pairs\nin a row",
-        effectDescription = "On click: flip a selected dice to its opposite value (1 -> 6, 2 -> 5...).",
+        effectDescription = "On click: flip a selected dice to its opposite value (1 ↔ 6, 2 ↔ 5...).",
         shortEffectDescription = "Click: flip a die",
         costFunction = { Dice.isOfAKindInARow(2, 2)(it.getSelectedDice()) },
-        clickCostFunction = { it.size == 1 && !it[0].fixed && !it[0].wild },
+        clickCostFunction = { it.size == 1 && !it[0].wild },
         onClick = {
             val value = it.getSelectedDice()[0].value
             it.consumeDice()

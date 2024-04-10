@@ -133,7 +133,7 @@ class GameViewModel : ViewModel() {
         var newDiceList = _gameState.value.diceList.toMutableList()
         if (selectOnly)
             newDiceList = newDiceList.map { it.copy(selected = false) }.toMutableList()
-        val diceIndex: Int = newDiceList.indexOf(clickedDice)
+        val diceIndex: Int = newDiceList.indexOfFirst { it === clickedDice }
         if (diceIndex == -1)
             return
         newDiceList[diceIndex] = clickedDice.copy(selected = !clickedDice.selected)
@@ -286,7 +286,7 @@ class GameViewModel : ViewModel() {
         val newValue = (dice.value + delta + 5) % 6 + 1
 
         val newDiceList = _gameState.value.diceList.toMutableList()
-        val diceIndex = newDiceList.indexOf(dice)
+        val diceIndex = newDiceList.indexOfFirst { it === dice }
         if (diceIndex == -1)
             return
         newDiceList[diceIndex] = dice.copy(value = newValue)

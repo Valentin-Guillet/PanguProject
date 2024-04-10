@@ -1,23 +1,13 @@
 package com.example.panguproject.model
 
 
-class Dice(
+data class Dice(
     val value: Int,
     val wild: Boolean = false,
     val fixed: Boolean = false,
     val stored: Boolean = false,
     val selected: Boolean = false,
 ) {
-    fun copy(
-        value: Int = this.value,
-        wild: Boolean = this.wild,
-        fixed: Boolean = this.fixed,
-        stored: Boolean = this.stored,
-        selected: Boolean = this.selected,
-    ): Dice {
-        return Dice(value, wild, fixed, stored, selected)
-    }
-
     companion object {
         fun isOfAKind(number: Int): (List<Dice>) -> Boolean {
             return fun(diceList: List<Dice>): Boolean {

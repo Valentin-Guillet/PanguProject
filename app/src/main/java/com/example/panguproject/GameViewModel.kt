@@ -6,117 +6,81 @@ import com.example.panguproject.model.Dice
 import com.example.panguproject.model.Project
 import com.example.panguproject.data.allBlueprintsList
 import com.example.panguproject.data.allProjectsList
-import com.example.panguproject.model.BlueprintId
 import com.example.panguproject.model.BlueprintStatus
+import com.example.panguproject.model.GameState
 import com.example.panguproject.model.ProjectStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class GameViewModel : ViewModel() {
-    private val _gameOver = MutableStateFlow(false)
-    val gameOver: StateFlow<Boolean> = _gameOver.asStateFlow()
-
-    private val _score = MutableStateFlow(0)
-    val score: StateFlow<Int> = _score.asStateFlow()
-
-    private val _turn = MutableStateFlow(0)
-    val turn: StateFlow<Int> = _turn.asStateFlow()
-
-    private val _diceList = MutableStateFlow(mutableListOf<Dice>())
-    val diceList: StateFlow<List<Dice>> = _diceList.asStateFlow()
-
-    private val _nbRerolls = MutableStateFlow(2)
-    val nbRerolls: StateFlow<Int> = _nbRerolls.asStateFlow()
-
-    private val _nbMod = MutableStateFlow(0)
-    val nbMod: StateFlow<Int> = _nbMod.asStateFlow()
-    private var baseModDelta = 1
-
-    private val _projectStatusList = MutableStateFlow(mutableListOf<ProjectStatus>())
-    val projectStatusList: StateFlow<List<ProjectStatus>> = _projectStatusList.asStateFlow()
-
-    private val _blueprintStatusList = MutableStateFlow(mutableListOf<BlueprintStatus>())
-    val blueprintStatusList: StateFlow<List<BlueprintStatus>> = _blueprintStatusList.asStateFlow()
-
-    private val _buildingStatusList = MutableStateFlow(mutableListOf<BlueprintStatus>())
-    val buildingStatusList: StateFlow<List<BlueprintStatus>> = _buildingStatusList.asStateFlow()
+    private val _gameState = MutableStateFlow(GameState())
+    val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
     private val _logMsg = MutableStateFlow("")
     val logMsg: StateFlow<String> = _logMsg.asStateFlow()
 
-    private var remainingBlueprints: List<BlueprintId> = listOf()
-    private var blueprintIndex: Int = 0
+    internal var nbDiceEndOfTurn = 0
+    internal var hasBasicDiceLeft = false
 
     private val initNbBlueprints = 3
-    var blueprintBuilt = false
-        private set
-    var nbDiceEndOfTurn = 0
-        private set
-    var usedWildDice = false
-        private set
-    var hasBasicDiceLeft = false
-        private set
-    private var wrappingAllowed = false
-
+    private val initNbDice = 4
 
     init {
         resetGame()
     }
 
     fun resetGame() {
-        _gameOver.value = false
-        _score.value = 0
-        _turn.value = 0
-        _nbMod.value = 0
-        blueprintIndex = remainingBlueprints.size
-        baseModDelta = 1
-        wrappingAllowed = false
-
-        _projectStatusList.value =
+        val newProjectList =
             allProjectsList.indices.shuffled().take(3).map { ProjectStatus(it, false) }
                 .toMutableList()
-        _buildingStatusList.value =
+        val newBuildingList =
             allBlueprintsList.filter { it.isDefault }.indices.map { BlueprintStatus(it, false) }
                 .toMutableList()
-
-        _blueprintStatusList.value.clear()
-        repeat(initNbBlueprints) { _blueprintStatusList.value.add(getNextBlueprint()) }
-
-        _diceList.value.clear()
+        val newBlueprintList = List(initNbBlueprints) { getNextBlueprint() }
+        val newGameState = GameState(
+            projectStatusList = newProjectList,
+            buildingStatusList = newBuildingList,
+            blueprintStatusList = newBlueprintList,
+        )
+        _gameState.value = newGameState
 
         nextTurn()
     }
 
     fun nextTurn() {
-        if (_turn.value == 10) {
-            _gameOver.value = true
+        if (gameState.value.turn == 10) {
+            _gameState.value = _gameState.value.copy(gameOver = true)
             return
         }
 
-        nbDiceEndOfTurn = _diceList.value.size
-        hasBasicDiceLeft = _diceList.value.any { !it.stored }
+        nbDiceEndOfTurn = _gameState.value.diceList.size
+        hasBasicDiceLeft = _gameState.value.diceList.any { !it.stored }
 
-        _turn.value++
-        _nbRerolls.value = 2
+        val nextDiceList = _gameState.value.diceList
+            .filter { it.stored }
+            .map { it.copy(selected = false) } + List(initNbDice) { Dice((1..6).random()) }
 
-        _diceList.value = _diceList.value.filter { it.stored }.toMutableList()
-        _diceList.value = _diceList.value.map { it.copy(selected = false) }.toMutableList()
+        val nextBuildingList = _gameState.value.buildingStatusList
+            .map { it.copy(usable = (allBlueprintsList[it.id].onClick != null)) }
 
-        repeat(4) { rollDice() }
+        val newGameState = _gameState.value.copy(
+            turn = _gameState.value.turn + 1,
+            nbRerolls = 2,
+            diceList = nextDiceList,
+            buildingStatusList = nextBuildingList,
+        )
+        _gameState.value = newGameState
 
-        val newBuildingList =
-            _buildingStatusList.value.toMutableList()
-                .map { it.copy(usable = (allBlueprintsList[it.id].onClick != null)) }
-        _buildingStatusList.value = newBuildingList.toMutableList()
-
-        for (building in _buildingStatusList.value)
+        for (building in _gameState.value.buildingStatusList)
             allBlueprintsList[building.id].onStartTurn?.invoke(this)
 
         _logMsg.value = ""
 
-        blueprintBuilt = false
-        usedWildDice = false
+        _gameState.value = _gameState.value.copy(
+            blueprintBuiltInTurn = false,
+            usedWildDiceInTurn = false,
+        )
         drawBlueprint()
     }
 
@@ -128,7 +92,9 @@ class GameViewModel : ViewModel() {
     ) {
         _logMsg.value = ""
         val dieValue = value ?: (1..6).random()
-        _diceList.value.add(Dice(dieValue, wild, fixed, stored))
+        _gameState.value = _gameState.value.copy(
+            diceList = _gameState.value.diceList + listOf(Dice(dieValue, wild, fixed, stored))
+        )
     }
 
     fun decreaseDiceValue() {
@@ -141,61 +107,68 @@ class GameViewModel : ViewModel() {
 
     fun gainMod(delta: Int) {
         _logMsg.value = ""
-        _nbMod.value += delta
+        _gameState.value = _gameState.value.copy(
+            nbMod = _gameState.value.nbMod + delta
+        )
     }
 
     fun increaseBaseMod() {
-        baseModDelta++
+        _gameState.value = _gameState.value.copy(
+            baseModDelta = _gameState.value.baseModDelta + 1
+        )
     }
 
     fun consumeDice() {
         _logMsg.value = ""
-        val (selectedDice, unselectedDice) = _diceList.value.partition { it.selected }
-        usedWildDice = usedWildDice || selectedDice.any { it.wild }
+        val (selectedDice, unselectedDice) = _gameState.value.diceList.partition { it.selected }
 
-        _diceList.value = unselectedDice.toMutableList()
+        _gameState.value = _gameState.value.copy(
+            diceList = unselectedDice.toMutableList(),
+            usedWildDiceInTurn = _gameState.value.usedWildDiceInTurn || selectedDice.any { it.wild },
+        )
     }
 
     fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
         _logMsg.value = ""
-        var newDiceList = _diceList.value.toMutableList()
+        var newDiceList = _gameState.value.diceList.toMutableList()
         if (selectOnly)
             newDiceList = newDiceList.map { it.copy(selected = false) }.toMutableList()
         val diceIndex: Int = newDiceList.indexOf(clickedDice)
         if (diceIndex == -1)
             return
         newDiceList[diceIndex] = clickedDice.copy(selected = !clickedDice.selected)
-        _diceList.value = newDiceList
+
+        _gameState.value = _gameState.value.copy(diceList = newDiceList)
     }
 
     fun getSelectedDice(): List<Dice> {
-        return _diceList.value.filter { it.selected }
+        return _gameState.value.diceList.filter { it.selected }
     }
 
     fun rerollDice(force: Boolean = false, useReroll: Boolean = true) {
-        if (_diceList.value.none { it.selected && !it.wild && (force || !it.fixed) }) {
+        if (_gameState.value.diceList.none { it.selected && !it.wild && (force || !it.fixed) }) {
             _logMsg.value = "No basic dice to reroll"
             return
         }
         _logMsg.value = ""
 
-        val newDiceList = _diceList.value.toMutableList()
+        val newDiceList = _gameState.value.diceList.toMutableList()
         for (i in 0 until newDiceList.size) {
             val dice = newDiceList[i]
             if (dice.selected && !dice.wild && (force || !dice.fixed))
                 newDiceList[i] = newDiceList[i].copy(value = (1..6).random())
         }
-        _diceList.value = newDiceList
+        _gameState.value = _gameState.value.copy(diceList = newDiceList)
 
-        for (building in _buildingStatusList.value)
+        for (building in _gameState.value.buildingStatusList)
             allBlueprintsList[building.id].onReroll?.invoke(this)
 
         if (useReroll)
-            _nbRerolls.value--
+            _gameState.value = _gameState.value.copy(nbRerolls = _gameState.value.nbRerolls - 1)
     }
 
     fun buildProject(project: Project) {
-        val newProjectList = _projectStatusList.value.toMutableList()
+        val newProjectList = _gameState.value.projectStatusList.toMutableList()
         if (!project.costFunction(this)) {
             _logMsg.value = "Invalid requirements"
             return
@@ -204,26 +177,31 @@ class GameViewModel : ViewModel() {
         _logMsg.value = ""
         consumeDice()
         newProjectList[project.id] = newProjectList[project.id].copy(built = true)
-        _projectStatusList.value = newProjectList
+        val newScore = _gameState.value.score + 3 * (11 - _gameState.value.turn) + 1
 
-        _score.value += 3 * (11 - turn.value) + 1
+        val gameOver = newProjectList.all { it.built }
 
-        if (_projectStatusList.value.all { it.built })
-            _gameOver.value = true
+        _gameState.value = _gameState.value.copy(
+            gameOver = gameOver,
+            score = newScore,
+            projectStatusList = newProjectList,
+        )
     }
 
     fun drawBlueprint() {
-        val newBlueprintList = _blueprintStatusList.value.toMutableList()
+        val newBlueprintList = _gameState.value.blueprintStatusList.toMutableList()
         val newBlueprint = getNextBlueprint()
         if (newBlueprintList.size >= 12) {
             _logMsg.value = "Too many blueprints"
-            gainMod(baseModDelta)
+            gainMod(_gameState.value.baseModDelta)
             return
         }
 
         _logMsg.value = ""
         newBlueprintList.add(newBlueprint)
-        _blueprintStatusList.value = newBlueprintList
+        _gameState.value = _gameState.value.copy(
+            blueprintStatusList = newBlueprintList
+        )
     }
 
     fun buildBlueprint(blueprint: Blueprint) {
@@ -235,32 +213,32 @@ class GameViewModel : ViewModel() {
 
         consumeDice()
 
-        val newBlueprintList =
-            _blueprintStatusList.value.filter { it.id != blueprint.id }.toMutableList()
-        _blueprintStatusList.value = newBlueprintList
-
-        val newBuildingList = _buildingStatusList.value.toMutableList()
-        newBuildingList.add(
+        val newBlueprintList = _gameState.value.blueprintStatusList.filter { it.id != blueprint.id }
+        val newBuildingList = _gameState.value.buildingStatusList.toMutableList()
+        newBuildingList += listOf(
             BlueprintStatus(
-                blueprint.id,
-                usable = (allBlueprintsList[blueprint.id].onClick != null)
+                blueprint.id, usable = (allBlueprintsList[blueprint.id].onClick != null)
             )
         )
         newBuildingList.sortBy { allBlueprintsList[it.id].onClick == null }
-        _buildingStatusList.value = newBuildingList
+
+        _gameState.value = _gameState.value.copy(
+            score = _gameState.value.score + 1,
+            blueprintStatusList = newBlueprintList,
+            buildingStatusList = newBuildingList,
+
+            blueprintBuiltInTurn = true,
+        )
 
         blueprint.onBuy?.invoke(this)
-
-        blueprintBuilt = true
-        _score.value++
     }
 
     fun discardBlueprint(blueprint: Blueprint) {
-        gainMod(baseModDelta)
+        gainMod(_gameState.value.baseModDelta)
 
-        val newBlueprintList =
-            _blueprintStatusList.value.filter { it.id != blueprint.id }.toMutableList()
-        _blueprintStatusList.value = newBlueprintList
+        _gameState.value = _gameState.value.copy(
+            blueprintStatusList = _gameState.value.blueprintStatusList.filter { it.id != blueprint.id },
+        )
     }
 
     fun useBuilding(blueprint: Blueprint) {
@@ -273,16 +251,17 @@ class GameViewModel : ViewModel() {
 
         blueprint.onClick?.invoke(this)
 
-        val newBuildingList = _buildingStatusList.value.toMutableList()
+        val newBuildingList = _gameState.value.buildingStatusList.toMutableList()
         val buildingIndex: Int = newBuildingList.indexOfFirst { it.id == blueprint.id }
         if (buildingIndex == -1)
             return
         newBuildingList[buildingIndex] = newBuildingList[buildingIndex].copy(usable = false)
-        _buildingStatusList.value = newBuildingList
+
+        _gameState.value = _gameState.value.copy(buildingStatusList = newBuildingList)
     }
 
     fun allowWrapping() {
-        wrappingAllowed = true
+        _gameState.value = _gameState.value.copy(wrappingAllowed = true)
     }
 
 
@@ -295,36 +274,41 @@ class GameViewModel : ViewModel() {
 
         val dice = selectedDice[0]
 
-        if (!dice.wild && _nbMod.value == 0) {
+        if (!dice.wild && _gameState.value.nbMod == 0) {
             _logMsg.value = "No more modifiers"
             return
         }
         _logMsg.value = ""
 
-        if (!wrappingAllowed && (dice.value + delta < 1 || dice.value + delta > 6))
+        if (!_gameState.value.wrappingAllowed && (dice.value + delta < 1 || dice.value + delta > 6))
             return
 
         val newValue = (dice.value + delta + 5) % 6 + 1
 
-        val newDiceList = _diceList.value.toMutableList()
+        val newDiceList = _gameState.value.diceList.toMutableList()
         val diceIndex = newDiceList.indexOf(dice)
         if (diceIndex == -1)
             return
         newDiceList[diceIndex] = dice.copy(value = newValue)
-        _diceList.value = newDiceList.toMutableList()
 
-        if (!dice.wild)
-            _nbMod.value--
+        _gameState.value = _gameState.value.copy(
+            diceList = newDiceList,
+            nbMod = if (!dice.wild) _gameState.value.nbMod else _gameState.value.nbMod - 1
+        )
     }
 
     private fun getNextBlueprint(): BlueprintStatus {
-        if (blueprintIndex == remainingBlueprints.size) {
-            remainingBlueprints =
-                allBlueprintsList.filter { !it.isDefault }.map { it.id }.shuffled()
-            blueprintIndex = 0
+        if (_gameState.value.blueprintIndex == _gameState.value.remainingBlueprints.size) {
+            _gameState.value = _gameState.value.copy(
+                remainingBlueprints = allBlueprintsList.filter { !it.isDefault }.map { it.id }.shuffled(),
+                blueprintIndex = 0,
+            )
         }
 
-        val blueprintId = remainingBlueprints[blueprintIndex++]
+        val blueprintId = _gameState.value.remainingBlueprints[_gameState.value.blueprintIndex]
+        _gameState.value = _gameState.value.copy(
+            blueprintIndex = _gameState.value.blueprintIndex + 1
+        )
         return BlueprintStatus(
             blueprintId,
             usable = (allBlueprintsList[blueprintId].onClick != null)

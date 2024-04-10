@@ -37,7 +37,7 @@ val allProjectsList: List<Project> = listOf(
         costDescription = "Six in a row (so 1, 2, 3, 4, 5, 6)\n\tThis project can't be purchased" +
                 "if a reroll has been used this turn, (building effects do not count as rerolls).",
         shortCostDescription = "Six in a row\n(no reroll)",
-        costFunction = { Dice.isInARow(6)(it.getSelectedDice()) && it.nbRerolls.value == 2 },
+        costFunction = { Dice.isInARow(6)(it.getSelectedDice()) && it.gameState.value.nbRerolls == 2 },
     ),
     Project(
         projectId++,
@@ -77,7 +77,7 @@ val allProjectsList: List<Project> = listOf(
         costDescription = "Two dice triples. Can only be purchased if a building has been built this turn.",
         shortCostDescription = "Two triples\nafter building",
         costFunction = {
-            Dice.isSetsOfAKind(2, 3)(it.getSelectedDice()) && it.blueprintBuilt
+            Dice.isSetsOfAKind(2, 3)(it.getSelectedDice()) && it.gameState.value.blueprintBuiltInTurn
         },
     ),
     Project(

@@ -65,7 +65,12 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortEffectDescription = "EOT: +1 stored wild\nif no card built",
         costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
         onBuy = { it.rollDice(wild = true, stored = true) },
-        onStartTurn = { if (!it.blueprintBuilt) it.rollDice(wild = true, stored = true) },
+        onStartTurn = {
+            if (!it.gameState.value.blueprintBuiltInTurn) it.rollDice(
+                wild = true,
+                stored = true
+            )
+        },
     ),
     Blueprint(
         blueprintId++,
@@ -191,7 +196,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three even\nand all even",
         effectDescription = "On start of turn: gain a fixed die of even value.",
         shortEffectDescription = "Start of turn:\ngain a fixed even",
-        costFunction = { it.getSelectedDice().size == 3 && it.diceList.value.all { dice -> dice.value % 2 == 0 } },
+        costFunction = { it.getSelectedDice().size == 3 && it.gameState.value.diceList.all { dice -> dice.value % 2 == 0 } },
         onStartTurn = { it.rollDice(2 * (1..3).random(), fixed = true) },
     ),
     Blueprint(
@@ -201,7 +206,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three odd\nand all odd",
         effectDescription = "On start of turn: gain a fixed die of odd value.",
         shortEffectDescription = "Start of turn:\ngain a fixed odd",
-        costFunction = { it.getSelectedDice().size == 3 && it.diceList.value.all { dice -> dice.value % 2 == 1 } },
+        costFunction = { it.getSelectedDice().size == 3 && it.gameState.value.diceList.all { dice -> dice.value % 2 == 1 } },
         onStartTurn = { it.rollDice(2 * (0..2).random() + 1, fixed = true) },
     ),
     Blueprint(
@@ -244,7 +249,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         effectDescription = "On start of turn: if the turn number is even, roll a basic die.",
         shortEffectDescription = "Even turn:\n+1 basic die",
         costFunction = { Dice.isInARow(3)(it.getSelectedDice()) },
-        onStartTurn = { if (it.turn.value % 2 == 0) it.rollDice() },
+        onStartTurn = { if (it.gameState.value.turn % 2 == 0) it.rollDice() },
     ),
     Blueprint(
         blueprintId++,
@@ -317,7 +322,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         effectDescription = "When spending a wild die: roll an extra basic die at the start of next turn.",
         shortEffectDescription = "Use wild die →\n+1 die next turn",
         costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
-        onStartTurn = { if (it.usedWildDice) it.rollDice() },
+        onStartTurn = { if (it.gameState.value.usedWildDiceInTurn) it.rollDice() },
     ),
     Blueprint(
         blueprintId++,
@@ -377,7 +382,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortEffectDescription = "Start of turn:\n+1 die /-> project",
         costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
         onStartTurn = {
-            val n = it.projectStatusList.value.count { project -> project.built }
+            val n = it.gameState.value.projectStatusList.count { project -> project.built }
             for (i in 1..n) it.rollDice()
         },
     ),

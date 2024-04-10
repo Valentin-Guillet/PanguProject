@@ -15,10 +15,6 @@ import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
 - make game savable
-  + define GameAction enum
-  + define `performAction()`, `updateGameState()`
-  + define `saveGame()`, `loadGame()`
-  + cf. chatGPT
 - check recomposition
 - better DetailCard UI
 - change purple colors to theme

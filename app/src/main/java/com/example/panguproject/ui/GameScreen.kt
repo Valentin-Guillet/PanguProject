@@ -73,6 +73,7 @@ import com.example.panguproject.model.Blueprint
 import com.example.panguproject.model.BlueprintStatus
 import com.example.panguproject.model.DetailCard
 import com.example.panguproject.model.Dice
+import com.example.panguproject.model.GameState
 import com.example.panguproject.model.Project
 import com.example.panguproject.model.ProjectStatus
 import com.example.panguproject.ui.theme.BackgroundColor
@@ -91,15 +92,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
     var displayCardInfoList: List<DetailCard>? by remember { mutableStateOf(null) }
     var displayCardInfoIndex: Int by remember { mutableIntStateOf(0) }
 
-    val gameOver: Boolean by gameViewModel.gameOver.collectAsState()
-    val score: Int by gameViewModel.score.collectAsState()
-    val turn: Int by gameViewModel.turn.collectAsState()
-    val diceList: List<Dice> by gameViewModel.diceList.collectAsState()
-    val nbRerolls: Int by gameViewModel.nbRerolls.collectAsState()
-    val nbMod: Int by gameViewModel.nbMod.collectAsState()
-    val projectList: List<ProjectStatus> by gameViewModel.projectStatusList.collectAsState()
-    val buildingList: List<BlueprintStatus> by gameViewModel.buildingStatusList.collectAsState()
-    val blueprintList: List<BlueprintStatus> by gameViewModel.blueprintStatusList.collectAsState()
+    val gameState: GameState by gameViewModel.gameState.collectAsState()
     val logMsg: String by gameViewModel.logMsg.collectAsState()
 
     fun cardViewFactory(cards: List<DetailCard>): (DetailCard) -> Unit {
@@ -121,42 +114,42 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             GameInfoSection(
-                score,
-                turn,
+                gameState.score,
+                gameState.turn,
                 modifier = Modifier.height(24.dp),
                 logMsg = logMsg,
             )
             GameProjectSection(
-                projectList,
+                gameState.projectStatusList,
                 onProjectClick = gameViewModel::buildProject,
                 onProjectLongClick = {
-                    cardViewFactory(projectList.map { projectStatus -> allProjectsList[projectStatus.id] })(
-                        it
-                    )
+                    cardViewFactory(
+                        gameState.projectStatusList
+                            .map { projectStatus -> allProjectsList[projectStatus.id] })(it)
                 },
                 modifier = Modifier
                     .weight(0.9f)
                     .alpha(focusAlpha),
             )
             GameBuildingSection(
-                buildingList,
+                gameState.buildingStatusList,
                 onBlueprintClick = gameViewModel::useBuilding,
                 onBlueprintLongClick = {
-                    cardViewFactory(buildingList.map { buildingStatus -> allBlueprintsList[buildingStatus.id] })(
-                        it
-                    )
+                    cardViewFactory(
+                        gameState.buildingStatusList
+                            .map { buildingStatus -> allBlueprintsList[buildingStatus.id] })(it)
                 },
                 modifier = Modifier
                     .weight(2f)
                     .alpha(focusAlpha),
             )
             GameBlueprintSection(
-                blueprintList,
+                gameState.blueprintStatusList,
                 onBlueprintClick = gameViewModel::buildBlueprint,
                 onBlueprintLongClick = {
-                    cardViewFactory(blueprintList.map { blueprintStatus -> allBlueprintsList[blueprintStatus.id] })(
-                        it
-                    )
+                    cardViewFactory(
+                        gameState.blueprintStatusList
+                            .map { blueprintStatus -> allBlueprintsList[blueprintStatus.id] })(it)
                 },
                 onBlueprintDoubleClick = gameViewModel::discardBlueprint,
                 modifier = Modifier
@@ -164,15 +157,15 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                     .alpha(focusAlpha),
             )
             GameResourceSection(
-                diceList,
+                gameState.diceList,
                 onDiceClick = gameViewModel::selectDice,
                 modifier = Modifier
                     .weight(1f)
                     .alpha(focusAlpha),
             )
             GameActionSection(
-                nbRerolls = nbRerolls,
-                nbMod = nbMod,
+                nbRerolls = gameState.nbRerolls,
+                nbMod = gameState.nbMod,
                 onReroll = gameViewModel::rerollDice,
                 onModMinus = gameViewModel::decreaseDiceValue,
                 onModPlus = gameViewModel::increaseDiceValue,
@@ -181,11 +174,11 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             )
         }
 
-        if (gameOver) {
+        if (gameState.gameOver) {
             DisplayGameOver(
                 navController,
-                score,
-                success = projectList.all { it.built },
+                gameState.score,
+                success = gameState.projectStatusList.all { it.built },
                 gameViewModel::resetGame
             )
 

@@ -1,11 +1,12 @@
-package com.example.panguproject
+package com.example.panguproject.model
+
 
 class Dice(
-    var value: Int,
-    var wild: Boolean = false,
-    var fixed: Boolean = false,
-    var stored: Boolean = false,
-    var selected: Boolean = false,
+    val value: Int,
+    val wild: Boolean = false,
+    val fixed: Boolean = false,
+    val stored: Boolean = false,
+    val selected: Boolean = false,
 ) {
     fun copy(
         value: Int = this.value,

@@ -1,4 +1,4 @@
-package com.example.panguproject
+package com.example.panguproject.model
 
 abstract class DetailCard(
     val name: String,

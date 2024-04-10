@@ -1,4 +1,4 @@
-package com.example.panguproject
+package com.example.panguproject.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -65,6 +65,16 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.panguproject.GameViewModel
+import com.example.panguproject.R
+import com.example.panguproject.data.allBlueprintsList
+import com.example.panguproject.data.allProjectsList
+import com.example.panguproject.model.Blueprint
+import com.example.panguproject.model.BlueprintStatus
+import com.example.panguproject.model.DetailCard
+import com.example.panguproject.model.Dice
+import com.example.panguproject.model.Project
+import com.example.panguproject.model.ProjectStatus
 import com.example.panguproject.ui.theme.BackgroundColor
 import com.example.panguproject.ui.theme.BaseDiceColor
 import com.example.panguproject.ui.theme.ButtonColor
@@ -87,9 +97,9 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
     val diceList: List<Dice> by gameViewModel.diceList.collectAsState()
     val nbRerolls: Int by gameViewModel.nbRerolls.collectAsState()
     val nbMod: Int by gameViewModel.nbMod.collectAsState()
-    val projectList: List<Project> by gameViewModel.projectList.collectAsState()
-    val buildingList: List<Blueprint> by gameViewModel.buildingList.collectAsState()
-    val blueprintList: List<Blueprint> by gameViewModel.blueprintList.collectAsState()
+    val projectList: List<ProjectStatus> by gameViewModel.projectStatusList.collectAsState()
+    val buildingList: List<BlueprintStatus> by gameViewModel.buildingStatusList.collectAsState()
+    val blueprintList: List<BlueprintStatus> by gameViewModel.blueprintStatusList.collectAsState()
     val logMsg: String by gameViewModel.logMsg.collectAsState()
 
     fun cardViewFactory(cards: List<DetailCard>): (DetailCard) -> Unit {
@@ -119,7 +129,11 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             GameProjectSection(
                 projectList,
                 onProjectClick = gameViewModel::buildProject,
-                onProjectLongClick = { cardViewFactory(projectList)(it) },
+                onProjectLongClick = {
+                    cardViewFactory(projectList.map { projectStatus -> allProjectsList[projectStatus.id] })(
+                        it
+                    )
+                },
                 modifier = Modifier
                     .weight(0.9f)
                     .alpha(focusAlpha),
@@ -127,7 +141,11 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             GameBuildingSection(
                 buildingList,
                 onBlueprintClick = gameViewModel::useBuilding,
-                onBlueprintLongClick = { cardViewFactory(buildingList)(it) },
+                onBlueprintLongClick = {
+                    cardViewFactory(buildingList.map { buildingStatus -> allBlueprintsList[buildingStatus.id] })(
+                        it
+                    )
+                },
                 modifier = Modifier
                     .weight(2f)
                     .alpha(focusAlpha),
@@ -135,7 +153,11 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             GameBlueprintSection(
                 blueprintList,
                 onBlueprintClick = gameViewModel::buildBlueprint,
-                onBlueprintLongClick = { cardViewFactory(blueprintList)(it) },
+                onBlueprintLongClick = {
+                    cardViewFactory(blueprintList.map { blueprintStatus -> allBlueprintsList[blueprintStatus.id] })(
+                        it
+                    )
+                },
                 onBlueprintDoubleClick = gameViewModel::discardBlueprint,
                 modifier = Modifier
                     .weight(2f)
@@ -203,7 +225,7 @@ fun GameInfoSection(
 
 @Composable
 fun GameProjectSection(
-    projects: List<Project>,
+    projects: List<ProjectStatus>,
     onProjectClick: (project: Project) -> Unit,
     onProjectLongClick: (project: Project) -> Unit,
     modifier: Modifier = Modifier,
@@ -219,15 +241,15 @@ fun GameProjectSection(
                 Box(
                     modifier = Modifier.weight(1f)
                 ) {
-                    @Suppress("UNCHECKED_CAST") DisplayCard(
-                        it,
+                    @Suppress("UNCHECKED_CAST") (DisplayCard(
+                        allProjectsList[it.id],
                         !it.built,
                         onProjectClick as (DetailCard) -> Unit,
                         onProjectLongClick as (DetailCard) -> Unit,
                         modifier = Modifier
                             .alpha(if (it.built) 0.5f else 1f),
-                        subtext = it.shortCostDescription,
-                    )
+                        subtext = allProjectsList[it.id].shortCostDescription,
+                    ))
 
                     if (it.built) {
                         Image(
@@ -246,7 +268,7 @@ fun GameProjectSection(
 
 @Composable
 fun GameBuildingSection(
-    buildings: List<Blueprint>,
+    buildings: List<BlueprintStatus>,
     onBlueprintClick: (Blueprint) -> Unit,
     onBlueprintLongClick: (Blueprint) -> Unit,
     modifier: Modifier = Modifier,
@@ -269,17 +291,17 @@ fun GameBuildingSection(
                     val nbCols = if (rowIndex == nbRows - 1) buildings.size % 3 else 3
                     repeat(nbCols) { colIndex ->
                         val blueprint = buildings[rowIndex * 3 + colIndex]
-                        @Suppress("UNCHECKED_CAST") DisplayCard(
-                            card = blueprint,
+                        @Suppress("UNCHECKED_CAST") (DisplayCard(
+                            card = allBlueprintsList[blueprint.id],
                             usable = blueprint.usable,
                             onCardClick = onBlueprintClick as (DetailCard) -> Unit,
                             onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
                             modifier = Modifier
                                 .width(colWidth)
                                 .height(75.dp),
-                            subtext = blueprint.shortEffectDescription,
+                            subtext = allBlueprintsList[blueprint.id].shortEffectDescription,
                             drawBorder = true,
-                        )
+                        ))
                     }
                 }
             }
@@ -289,7 +311,7 @@ fun GameBuildingSection(
 
 @Composable
 fun GameBlueprintSection(
-    blueprints: List<Blueprint>,
+    blueprints: List<BlueprintStatus>,
     onBlueprintClick: (Blueprint) -> Unit,
     onBlueprintLongClick: (Blueprint) -> Unit,
     onBlueprintDoubleClick: (Blueprint) -> Unit,
@@ -313,8 +335,8 @@ fun GameBlueprintSection(
                     val nbCols = if (rowIndex == nbRows - 1) blueprints.size % 3 else 3
                     repeat(nbCols) { colIndex ->
                         val blueprint = blueprints[rowIndex * 3 + colIndex]
-                        @Suppress("UNCHECKED_CAST") DisplayCard(
-                            card = blueprint,
+                        @Suppress("UNCHECKED_CAST") (DisplayCard(
+                            card = allBlueprintsList[blueprint.id],
                             usable = true,
                             onCardClick = onBlueprintClick as (DetailCard) -> Unit,
                             onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
@@ -322,9 +344,9 @@ fun GameBlueprintSection(
                             modifier = Modifier
                                 .width(colWidth)
                                 .height(75.dp),
-                            subtext = blueprint.shortCostDescription,
+                            subtext = allBlueprintsList[blueprint.id].shortCostDescription,
                             drawBorder = false,
-                        )
+                        ))
                     }
                 }
             }

@@ -1,4 +1,4 @@
-package com.example.panguproject
+package com.example.panguproject.ui
 
 import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.panguproject.R
 
 @Composable
 fun MenuScreen(navController: NavController?) {

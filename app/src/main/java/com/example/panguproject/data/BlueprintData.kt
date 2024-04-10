@@ -1,72 +1,42 @@
-package com.example.panguproject
+package com.example.panguproject.data
 
-class Blueprint(
-    name: String,
-    costDescription: String? = null,
-    shortCostDescription: String? = null,
-    effectDescription: String? = null,
-    shortEffectDescription: String? = null,
-    val costFunction: ((gameViewModel: GameViewModel) -> Boolean)? = null,
-    val clickCostFunction: ((diceList: List<Dice>) -> Boolean)? = null,
-    val onClick: ((gameViewModel: GameViewModel) -> Unit)? = null,
-    val onStartTurn: ((gameViewModel: GameViewModel) -> Unit)? = null,
-    val onBuy: ((gameViewModel: GameViewModel) -> Unit)? = null,
-    val onReroll: ((gameViewModel: GameViewModel) -> Unit)? = null,
-) : DetailCard(
-    name,
-    costDescription,
-    shortCostDescription,
-    effectDescription,
-    shortEffectDescription,
-) {
-    var usable: Boolean = (onClick != null)
+import com.example.panguproject.model.Blueprint
+import com.example.panguproject.model.BlueprintId
+import com.example.panguproject.model.Dice
 
-    fun copy(used: Boolean): Blueprint {
-        val blueprint = Blueprint(
-            name,
-            costDescription,
-            shortCostDescription,
-            effectDescription,
-            shortEffectDescription,
-            costFunction,
-            clickCostFunction,
-            onClick,
-            onStartTurn,
-            onBuy,
-            onReroll,
-        )
-        if (used)
-            blueprint.usable = false
-        return blueprint
-    }
-}
 
-val defaultBuildingsList: List<Blueprint> = listOf(
+private var blueprintId: BlueprintId = 0
+
+val allBlueprintsList: List<Blueprint> = listOf(
 //    Blueprint(
+//        blueprintId++,
 //        "Reset",
 //        effectDescription = "Reset debug",
 //        shortEffectDescription = "Reset debug",
 //        clickCostFunction = { true },
 //        onClick = GameViewModel::resetGame,
+//        idDefault = true,
 //    ),
     Blueprint(
+        blueprintId++,
         "Laboratory",
         effectDescription = "Consume a pair of dice to draw a blueprint.",
         shortEffectDescription = "Pair →\nDraw a blueprint",
         clickCostFunction = { Dice.isOfAKind(2)(it) },
         onClick = { it.consumeDice(); it.drawBlueprint() },
+        isDefault = true,
     ),
     Blueprint(
+        blueprintId++,
         "Forge",
         effectDescription = "Consume three in a row to gain a stored wild die.",
         shortEffectDescription = "Three in a row →\nStored wild die",
         clickCostFunction = { Dice.isInARow(3)(it) },
         onClick = { it.consumeDice(); it.rollDice(wild = true, stored = true) },
+        isDefault = true,
     ),
-)
-
-val allBlueprintsList: List<Blueprint> = listOf(
     Blueprint(
+        blueprintId++,
         "3D Printer",
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
@@ -77,6 +47,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onClick = { it.consumeDice(); it.rollDice(1, wild = true) },
     ),
     Blueprint(
+        blueprintId++,
         "AutoMiner",
         costDescription = "Three dice of value 2, 4 and 6.",
         shortCostDescription = "2, 4, 6",
@@ -86,6 +57,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { it.gainMod(1) },
     ),
     Blueprint(
+        blueprintId++,
         "Backup Plan",
         costDescription = "Three dice of a kind.",
         shortCostDescription = "Three of a kind",
@@ -96,6 +68,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { if (!it.blueprintBuilt) it.rollDice(wild = true, stored = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Battery",
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
@@ -110,6 +83,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         }
     ),
     Blueprint(
+        blueprintId++,
         "Bionic Robot",
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
@@ -119,6 +93,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onReroll = { if (it.getSelectedDice().size == 1) it.rollDice() },
     ),
     Blueprint(
+        blueprintId++,
         "Cloner",
         costDescription = "Five dice in a row.",
         shortCostDescription = "Five in a row",
@@ -130,6 +105,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     ),
 ) + (1..2).map {
     Blueprint(
+        blueprintId++,
         "Cryosleep",
         costDescription = "Three dice of value 1, 3 and 5.",
         shortCostDescription = "1, 3, 5",
@@ -145,6 +121,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     )
 } + listOf(
     Blueprint(
+        blueprintId++,
         "Dome",
         costDescription = "A full-house of dice. Example: 4, 4, 4, 2, 2",
         shortCostDescription = "Full-house",
@@ -155,6 +132,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     )
 ) + (1..6).map { value ->
     Blueprint(
+        blueprintId++,
         "Drone",
         costDescription = "A triple of dice of value $value.",
         shortCostDescription = "$value, $value, $value",
@@ -165,6 +143,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     )
 } + listOf(
     Blueprint(
+        blueprintId++,
         "Extractor",
         costDescription = "Three dice of value 4, 5, 6.",
         shortCostDescription = "4, 5, 6",
@@ -175,6 +154,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onClick = { it.consumeDice(); it.rollDice(wild = true, stored = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Fission",
         costDescription = "A set of dice that amounts to exactly 20.",
         shortCostDescription = "Sum = 20",
@@ -190,6 +170,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         },
     ),
     Blueprint(
+        blueprintId++,
         "Fusion",
         costDescription = "A set of dice that amounts to exactly 12.",
         shortCostDescription = "Sum = 12",
@@ -204,6 +185,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         },
     ),
     Blueprint(
+        blueprintId++,
         "Monopole",
         costDescription = "Three dice of even value AND all the remaining dice must be of even value too.",
         shortCostDescription = "Three even\nand all even",
@@ -213,6 +195,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { it.rollDice(2 * (1..3).random(), fixed = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Monopole",
         costDescription = "Three dice of odd value AND all the remaining dice must be of odd value too.",
         shortCostDescription = "Three odd\nand all odd",
@@ -222,6 +205,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { it.rollDice(2 * (0..2).random() + 1, fixed = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Nanobots",
         costDescription = "Three dice in a row.",
         shortCostDescription = "Three in a row",
@@ -233,6 +217,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onClick = { it.rerollDice(force = true, useReroll = false) },
     ),
     Blueprint(
+        blueprintId++,
         "O.M.N.I.",
         costDescription = "Five dice of a kind.",
         shortCostDescription = "Five of a kind",
@@ -242,6 +227,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { it.rollDice(wild = true, stored = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Observatory",
         costDescription = "Three dice of value 4, 5 and 6.",
         shortCostDescription = "4, 5, 6",
@@ -251,6 +237,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onBuy = { it.drawBlueprint(); it.increaseBaseMod() },
     ),
     Blueprint(
+        blueprintId++,
         "Outpost",
         costDescription = "Three dice in a row.",
         shortCostDescription = "Three in a row",
@@ -260,6 +247,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { if (it.turn.value % 2 == 0) it.rollDice() },
     ),
     Blueprint(
+        blueprintId++,
         "Prospector",
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
@@ -269,6 +257,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { it.rollDice(fixed = true, stored = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Prototype",
         costDescription = "Three dice in a row.",
         shortCostDescription = "Three in a row",
@@ -278,6 +267,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { it.rollDice(fixed = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Qbit devices",
         costDescription = "Two pairs of dice in a row. Example: 2, 2, 3, 3.",
         shortCostDescription = "Two pairs\nin a row",
@@ -288,6 +278,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onClick = { it.rerollDice(useReroll = false) },
     ),
     Blueprint(
+        blueprintId++,
         "Radiation",
         costDescription = "A set of dice that amounts to exactly 25.",
         shortCostDescription = "Sum = 25",
@@ -303,6 +294,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         },
     ),
     Blueprint(
+        blueprintId++,
         "Reactor",
         costDescription = "A set of dice that amounts to exactly 16.",
         shortCostDescription = "Sum = 16",
@@ -318,6 +310,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         }
     ),
     Blueprint(
+        blueprintId++,
         "Recycler",
         costDescription = "Three dice of a kind.",
         shortCostDescription = "Three of a kind",
@@ -327,6 +320,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { if (it.usedWildDice) it.rollDice() },
     ),
     Blueprint(
+        blueprintId++,
         "Replicator",
         costDescription = "Two wild dice.",
         shortCostDescription = "Two wilds",
@@ -338,6 +332,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onStartTurn = { it.rollDice(wild = true) },
     ),
     Blueprint(
+        blueprintId++,
         "Self-Repair",
         costDescription = "Four dice of a kind.",
         shortCostDescription = "Four of a kind",
@@ -353,6 +348,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     ),
 ) + (1..2).map {
     Blueprint(
+        blueprintId++,
         "Settlement",
         costDescription = "Four dice in a row.",
         shortCostDescription = "Four in a row",
@@ -363,6 +359,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     )
 } + listOf(
     Blueprint(
+        blueprintId++,
         "Shuttle",
         costDescription = "Three dice of a kind.",
         shortCostDescription = "Three of a kind",
@@ -372,6 +369,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onBuy = { it.gainMod(2); it.allowWrapping() },
     ),
     Blueprint(
+        blueprintId++,
         "Treadmill",
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
@@ -379,11 +377,12 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortEffectDescription = "Start of turn:\n+1 die /-> project",
         costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
         onStartTurn = {
-            val n = it.projectList.value.count { project -> project.built }
+            val n = it.projectStatusList.value.count { project -> project.built }
             for (i in 1..n) it.rollDice()
         },
     ),
     Blueprint(
+        blueprintId++,
         "Tunneler",
         costDescription = "Two pairs of dice in a row.",
         shortCostDescription = "Two pairs\nin a row",

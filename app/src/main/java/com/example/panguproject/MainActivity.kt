@@ -9,6 +9,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.panguproject.ui.GameScreen
+import com.example.panguproject.ui.MenuScreen
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:

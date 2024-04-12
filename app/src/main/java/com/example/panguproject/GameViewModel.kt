@@ -315,7 +315,7 @@ class GameViewModel(
 
         _gameState.value = _gameState.value.copy(
             diceList = newDiceList,
-            nbMod = if (!dice.wild) _gameState.value.nbMod else _gameState.value.nbMod - 1
+            nbMod = if (dice.wild) _gameState.value.nbMod else _gameState.value.nbMod - 1
         )
         saveState()
     }

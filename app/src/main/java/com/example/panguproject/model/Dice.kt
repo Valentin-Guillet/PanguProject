@@ -1,6 +1,9 @@
 package com.example.panguproject.model
 
+import kotlinx.serialization.Serializable
 
+
+@Serializable
 data class Dice(
     val value: Int,
     val wild: Boolean = false,

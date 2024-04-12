@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,8 +90,8 @@ import com.example.panguproject.ui.theme.WildDiceColor
 @ExperimentalMaterial3Api
 @Composable
 fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = viewModel()) {
-    var displayCardInfoList: List<DetailCard>? by remember { mutableStateOf(null) }
-    var displayCardInfoIndex: Int by remember { mutableIntStateOf(0) }
+    var displayCardInfoList: List<DetailCard>? by rememberSaveable { mutableStateOf(null) }
+    var displayCardInfoIndex: Int by rememberSaveable { mutableIntStateOf(0) }
 
     val gameState: GameState by gameViewModel.gameState.collectAsState()
     val logMsg: String by gameViewModel.logMsg.collectAsState()
@@ -179,9 +180,8 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 navController,
                 gameState.score,
                 success = gameState.projectStatusList.all { it.built },
-                gameViewModel::resetGame
+                gameViewModel::newGame
             )
-
         }
 
         if (displayCardInfoList != null) {
@@ -725,11 +725,11 @@ fun DisplayGameOver(
     navController: NavController?,
     score: Int,
     success: Boolean,
-    resetGame: () -> Unit,
+    newGame: () -> Unit,
 ) {
     val title = if (success) "Congratulations" else "Game Over"
     Dialog(
-        onDismissRequest = resetGame,
+        onDismissRequest = newGame,
     ) {
         Card(
             modifier = Modifier
@@ -770,7 +770,7 @@ fun DisplayGameOver(
                         Text("Back", fontSize = 18.sp, textAlign = TextAlign.Center)
                     }
                     Button(
-                        onClick = resetGame,
+                        onClick = newGame,
                         modifier = Modifier
                             .height(60.dp)
                             .width(100.dp),
@@ -822,4 +822,5 @@ fun UpdateViewConfiguration(
 @Composable
 fun GameScreenPreview() {
     GameScreen(null)
+//    GameScreen(null, gameStateStorage = GameStateStorage(LocalContext.current))
 }

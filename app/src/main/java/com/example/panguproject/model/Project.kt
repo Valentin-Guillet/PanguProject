@@ -1,6 +1,7 @@
 package com.example.panguproject.model
 
 import com.example.panguproject.GameViewModel
+import kotlinx.serialization.Serializable
 
 
 typealias ProjectId = Int
@@ -17,6 +18,7 @@ class Project(
     shortCostDescription = shortCostDescription,
 )
 
+@Serializable
 data class ProjectStatus(
     val id: ProjectId,
     val built: Boolean = false

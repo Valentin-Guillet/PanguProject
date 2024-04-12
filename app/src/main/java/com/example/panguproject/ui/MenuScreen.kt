@@ -20,10 +20,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.panguproject.GameViewModel
 import com.example.panguproject.R
 
 @Composable
-fun MenuScreen(navController: NavController?) {
+fun MenuScreen(
+    navController: NavController?,
+    gameViewModel: GameViewModel? = null,
+) {
     val activity = LocalContext.current as? Activity
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -42,7 +46,19 @@ fun MenuScreen(navController: NavController?) {
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(66.dp))
-            Button(onClick = { navController?.navigate("game") }) {
+            if (gameViewModel?.gameStateStorage?.hasSavedState() == true) {
+                Button(onClick = {
+                    gameViewModel.loadGame()
+                    navController?.navigate("game")
+                }) {
+                    Text(stringResource(id = R.string.resume))
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            Button(onClick = {
+                gameViewModel?.newGame()
+                navController?.navigate("game")
+            }) {
                 Text(stringResource(id = R.string.play))
             }
             Spacer(modifier = Modifier.height(16.dp))

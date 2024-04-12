@@ -8,15 +8,6 @@ import com.example.panguproject.model.Dice
 private var blueprintId: BlueprintId = 0
 
 val allBlueprintsList: List<Blueprint> = listOf(
-//    Blueprint(
-//        blueprintId++,
-//        "Reset",
-//        effectDescription = "Reset debug",
-//        shortEffectDescription = "Reset debug",
-//        clickCostFunction = { true },
-//        onClick = GameViewModel::resetGame,
-//        idDefault = true,
-//    ),
     Blueprint(
         blueprintId++,
         "Laboratory",

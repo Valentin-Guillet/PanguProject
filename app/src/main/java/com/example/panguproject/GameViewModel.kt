@@ -1,6 +1,8 @@
 package com.example.panguproject
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.panguproject.data.GameStateStorage
 import com.example.panguproject.model.Blueprint
 import com.example.panguproject.model.Dice
 import com.example.panguproject.model.Project
@@ -12,8 +14,13 @@ import com.example.panguproject.model.ProjectStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class GameViewModel : ViewModel() {
+
+class GameViewModel(
+    val gameStateStorage: GameStateStorage,
+) : ViewModel() {
+
     private val _gameState = MutableStateFlow(GameState())
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
@@ -26,11 +33,16 @@ class GameViewModel : ViewModel() {
     private val initNbBlueprints = 3
     private val initNbDice = 4
 
-    init {
-        resetGame()
+    fun loadGame() {
+        val savedGameState = gameStateStorage.loadState()
+        if (savedGameState != null) {
+            _gameState.value = savedGameState
+        } else {
+            newGame()
+        }
     }
 
-    fun resetGame() {
+    fun newGame() {
         val newProjectList =
             allProjectsList.indices.shuffled().take(3).map { ProjectStatus(it, false) }
                 .toMutableList()
@@ -46,6 +58,8 @@ class GameViewModel : ViewModel() {
         _gameState.value = newGameState
 
         nextTurn()
+
+        viewModelScope.launch { gameStateStorage.clearState() }
     }
 
     fun nextTurn() {
@@ -82,6 +96,7 @@ class GameViewModel : ViewModel() {
             usedWildDiceInTurn = false,
         )
         drawBlueprint()
+        saveState()
     }
 
     fun rollDice(
@@ -165,6 +180,7 @@ class GameViewModel : ViewModel() {
 
         if (useReroll)
             _gameState.value = _gameState.value.copy(nbRerolls = _gameState.value.nbRerolls - 1)
+        saveState()
     }
 
     fun buildProject(project: Project) {
@@ -186,6 +202,7 @@ class GameViewModel : ViewModel() {
             score = newScore,
             projectStatusList = newProjectList,
         )
+        saveState()
     }
 
     fun drawBlueprint() {
@@ -202,6 +219,7 @@ class GameViewModel : ViewModel() {
         _gameState.value = _gameState.value.copy(
             blueprintStatusList = newBlueprintList
         )
+        saveState()
     }
 
     fun buildBlueprint(blueprint: Blueprint) {
@@ -231,6 +249,7 @@ class GameViewModel : ViewModel() {
         )
 
         blueprint.onBuy?.invoke(this)
+        saveState()
     }
 
     fun discardBlueprint(blueprint: Blueprint) {
@@ -239,6 +258,7 @@ class GameViewModel : ViewModel() {
         _gameState.value = _gameState.value.copy(
             blueprintStatusList = _gameState.value.blueprintStatusList.filter { it.id != blueprint.id },
         )
+        saveState()
     }
 
     fun useBuilding(blueprint: Blueprint) {
@@ -258,10 +278,12 @@ class GameViewModel : ViewModel() {
         newBuildingList[buildingIndex] = newBuildingList[buildingIndex].copy(usable = false)
 
         _gameState.value = _gameState.value.copy(buildingStatusList = newBuildingList)
+        saveState()
     }
 
     fun allowWrapping() {
         _gameState.value = _gameState.value.copy(wrappingAllowed = true)
+        saveState()
     }
 
 
@@ -295,12 +317,14 @@ class GameViewModel : ViewModel() {
             diceList = newDiceList,
             nbMod = if (!dice.wild) _gameState.value.nbMod else _gameState.value.nbMod - 1
         )
+        saveState()
     }
 
     private fun getNextBlueprint(): BlueprintStatus {
         if (_gameState.value.blueprintIndex == _gameState.value.remainingBlueprints.size) {
             _gameState.value = _gameState.value.copy(
-                remainingBlueprints = allBlueprintsList.filter { !it.isDefault }.map { it.id }.shuffled(),
+                remainingBlueprints = allBlueprintsList.filter { !it.isDefault }.map { it.id }
+                    .shuffled(),
                 blueprintIndex = 0,
             )
         }
@@ -313,5 +337,11 @@ class GameViewModel : ViewModel() {
             blueprintId,
             usable = (allBlueprintsList[blueprintId].onClick != null)
         )
+    }
+
+    private fun saveState() {
+        viewModelScope.launch {
+            gameStateStorage.saveState(_gameState.value)
+        }
     }
 }

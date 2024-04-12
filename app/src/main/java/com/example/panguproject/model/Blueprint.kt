@@ -1,6 +1,7 @@
 package com.example.panguproject.model
 
 import com.example.panguproject.GameViewModel
+import kotlinx.serialization.Serializable
 
 
 typealias BlueprintId = Int
@@ -27,6 +28,7 @@ class Blueprint(
     shortEffectDescription,
 )
 
+@Serializable
 data class BlueprintStatus(
     val id: BlueprintId,
     val usable: Boolean = false,

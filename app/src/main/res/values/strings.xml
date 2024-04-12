@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">PanguProject</string>
     <string name="roll">Roll</string>
+    <string name="resume">Resume</string>
     <string name="play">Play</string>
     <string name="quit">Quit</string>
 </resources>

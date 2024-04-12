@@ -1,5 +1,8 @@
 package com.example.panguproject.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GameState(
     val gameOver: Boolean = false,
     val score: Int = 0,

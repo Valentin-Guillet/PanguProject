@@ -43,6 +43,7 @@ class GameViewModel(
     }
 
     fun newGame() {
+        _gameState.value = GameState()
         val newProjectList =
             allProjectsList.indices.shuffled().take(3).map { ProjectStatus(it, false) }
                 .toMutableList()
@@ -50,12 +51,11 @@ class GameViewModel(
             allBlueprintsList.filter { it.isDefault }.indices.map { BlueprintStatus(it, false) }
                 .toMutableList()
         val newBlueprintList = List(initNbBlueprints) { getNextBlueprint() }
-        val newGameState = GameState(
+        _gameState.value = _gameState.value.copy(
             projectStatusList = newProjectList,
             buildingStatusList = newBuildingList,
             blueprintStatusList = newBlueprintList,
         )
-        _gameState.value = newGameState
 
         nextTurn()
 

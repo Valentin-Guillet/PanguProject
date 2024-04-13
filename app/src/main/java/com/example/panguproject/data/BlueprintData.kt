@@ -99,7 +99,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         clickCostFunction = { it.size == 1 },
         onClick = { it.rollDice(it.getSelectedDice()[0].value, fixed = true) },
     ),
-) + (1..2).map {
+) + List(2) { _ ->
     Blueprint(
         blueprintId++,
         "Cryosleep",
@@ -342,7 +342,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
             }
         },
     ),
-) + (1..2).map {
+) + List(2) { _ ->
     Blueprint(
         blueprintId++,
         "Settlement",

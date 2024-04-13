@@ -193,7 +193,8 @@ class GameViewModel(
 
         _logMsg.value = ""
         consumeDice()
-        newProjectList[project.id] = newProjectList[project.id].copy(built = true)
+        val projectIndex = newProjectList.indexOfFirst { it.id == project.id }
+        newProjectList[projectIndex] = newProjectList[projectIndex].copy(built = true)
         val newScore = _gameState.value.score + 3 * (11 - _gameState.value.turn) + 1
 
         val gameOver = newProjectList.all { it.built }

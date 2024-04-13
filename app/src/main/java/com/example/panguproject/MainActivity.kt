@@ -20,7 +20,6 @@ import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
 - better DetailCard UI
-- change purple colors to theme
 - make real menu page
 - make an icon
 - add statistics screen

@@ -18,7 +18,6 @@ import com.example.panguproject.ui.MenuScreen
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- check recomposition
 - better DetailCard UI
 - change purple colors to theme
 - make real menu page

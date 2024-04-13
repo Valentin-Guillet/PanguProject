@@ -56,8 +56,8 @@ fun MenuScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
             Button(onClick = {
-                gameViewModel?.newGame()
                 navController?.navigate("game")
+                gameViewModel?.newGame()
             }) {
                 Text(stringResource(id = R.string.play))
             }

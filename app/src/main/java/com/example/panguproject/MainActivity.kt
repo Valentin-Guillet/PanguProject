@@ -19,9 +19,8 @@ import com.example.panguproject.ui.MenuScreen
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- make real menu page
 - make an icon
-- add statistics screen
+- add statistics
 */
 
 @ExperimentalMaterial3Api

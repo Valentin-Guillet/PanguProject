@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,15 +50,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -68,6 +68,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.panguproject.GameViewModel
 import com.example.panguproject.R
+import com.example.panguproject.data.GameStateStorage
 import com.example.panguproject.data.allBlueprintsList
 import com.example.panguproject.data.allProjectsList
 import com.example.panguproject.model.Blueprint
@@ -80,10 +81,13 @@ import com.example.panguproject.model.ProjectStatus
 import com.example.panguproject.ui.theme.BackgroundColor
 import com.example.panguproject.ui.theme.BaseDiceColor
 import com.example.panguproject.ui.theme.ButtonColor
+import com.example.panguproject.ui.theme.EcruWhite
 import com.example.panguproject.ui.theme.FixedDiceColor
+import com.example.panguproject.ui.theme.PinkRed
 import com.example.panguproject.ui.theme.SectionBackgroundColor
 import com.example.panguproject.ui.theme.SectionTextColor
 import com.example.panguproject.ui.theme.SelectedDiceBorderColor
+import com.example.panguproject.ui.theme.SpaceBlue
 import com.example.panguproject.ui.theme.UsableCardBorderColor
 import com.example.panguproject.ui.theme.WildDiceColor
 
@@ -490,6 +494,7 @@ fun DisplayCard(
         Surface(
             shape = RoundedCornerShape(8.dp),
             shadowElevation = 4.dp,
+            color = SectionBackgroundColor,
         ) {
             Column(
                 modifier = modifier
@@ -572,8 +577,10 @@ fun DisplayCardInfo(
     Card(
         onClick = { onClick(card) },
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
+            .fillMaxHeight(0.66f)
             .padding(30.dp),
+        colors = CardDefaults.cardColors(containerColor = EcruWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
     ) {
         val name = if (card.name.length > 15) card.name.replace(" ", "\n") else card.name
@@ -581,43 +588,59 @@ fun DisplayCardInfo(
             name,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(top = 30.dp, bottom = 50.dp),
+                .padding(top = 12.dp, bottom = 24.dp),
+            color = PinkRed,
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             lineHeight = 40.sp,
         )
         if (card.costDescription != null) {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
-                        append("Cost: ")
-                    }
-                    append(card.costDescription)
-                },
-                modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, bottom = 50.dp)
-                    .align(Alignment.Start),
-                textAlign = TextAlign.Justify,
-                fontSize = 20.sp,
-                lineHeight = 28.sp,
+            DisplayDescriptionInfo(
+                descName = "Cost",
+                description = card.costDescription,
             )
+            Spacer(modifier = Modifier.height(20.dp))
         }
         if (card.effectDescription != null) {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 24.sp)) {
-                        append("Effect: ")
-                    }
-                    append(card.effectDescription)
-                },
-                modifier = Modifier
-                    .padding(horizontal = 20.dp)
-                    .align(Alignment.Start),
-                textAlign = TextAlign.Justify,
-                fontSize = 20.sp,
-                lineHeight = 38.sp,
+            DisplayDescriptionInfo(
+                descName = "Effect",
+                description = card.effectDescription
             )
         }
+    }
+}
+
+@Composable
+fun ColumnScope.DisplayDescriptionInfo(
+    descName: String,
+    description: String,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .align(Alignment.CenterHorizontally)
+            .padding(horizontal = 16.dp)
+            .background(color = SpaceBlue.copy(alpha = 0.15f), shape = RoundedCornerShape(16.dp)),
+//            .border(color = PinkRed, width = 2.dp, shape = RoundedCornerShape(16.dp)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text(
+            text = descName,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = SpaceBlue,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            text = description,
+            textAlign = TextAlign.Center,
+            fontSize = 20.sp,
+            color = SpaceBlue,
+            lineHeight = 28.sp,
+            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 12.dp),
+        )
     }
 }
 
@@ -821,6 +844,9 @@ fun UpdateViewConfiguration(
 @Preview(device = "id:S9+")
 @Composable
 fun GameScreenPreview() {
-    GameScreen(null)
-//    GameScreen(null, gameStateStorage = GameStateStorage(LocalContext.current))
+    val context = LocalContext.current
+    val gameStateStorage = remember { GameStateStorage(context) }
+    val gameViewModel = remember { GameViewModel(gameStateStorage) }
+    gameViewModel.newGame()
+    GameScreen(null, gameViewModel)
 }

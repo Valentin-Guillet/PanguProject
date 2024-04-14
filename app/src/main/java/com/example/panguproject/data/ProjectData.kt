@@ -27,14 +27,14 @@ val allProjectsList: List<Project> = listOf(
     Project(
         projectId++,
         "Freya Project",
-        costDescription = "Four pairs of dice in a row.\n\tExample: 2, 2, 3, 3, 4, 4, 5, 5",
+        costDescription = "Four pairs of dice in a row.\nExample: 2, 2, 3, 3, 4, 4, 5, 5",
         shortCostDescription = "Four pairs\nin a row",
         costFunction = { Dice.isOfAKindInARow(2, 4)(it.getSelectedDice()) },
     ),
     Project(
         projectId++,
         "Herus Project",
-        costDescription = "Six in a row (so 1, 2, 3, 4, 5, 6)\n\tThis project can't be purchased" +
+        costDescription = "Six in a row (so 1, 2, 3, 4, 5, 6)\nThis project can't be purchased " +
                 "if a reroll has been used this turn, (building effects do not count as rerolls).",
         shortCostDescription = "Six in a row\n(no reroll)",
         costFunction = { Dice.isInARow(6)(it.getSelectedDice()) && it.gameState.value.nbRerolls == 2 },

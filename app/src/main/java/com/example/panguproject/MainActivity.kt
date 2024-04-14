@@ -19,7 +19,6 @@ import com.example.panguproject.ui.MenuScreen
 import com.example.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- better DetailCard UI
 - make real menu page
 - make an icon
 - add statistics screen

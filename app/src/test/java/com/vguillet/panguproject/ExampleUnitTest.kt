@@ -1,4 +1,4 @@
-package com.example.panguproject
+package com.vguillet.panguproject
 
 import org.junit.Test
 

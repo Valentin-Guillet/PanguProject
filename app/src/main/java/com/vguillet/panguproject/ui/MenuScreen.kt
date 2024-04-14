@@ -1,4 +1,4 @@
-package com.example.panguproject.ui
+package com.vguillet.panguproject.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,11 +19,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.panguproject.GameViewModel
-import com.example.panguproject.R
-import com.example.panguproject.ui.theme.BackgroundColor
-import com.example.panguproject.ui.theme.EcruWhite
-import com.example.panguproject.ui.theme.PinkRed
+import com.vguillet.panguproject.GameViewModel
+import com.vguillet.panguproject.R
+import com.vguillet.panguproject.ui.theme.BackgroundColor
+import com.vguillet.panguproject.ui.theme.EcruWhite
+import com.vguillet.panguproject.ui.theme.PinkRed
 
 @Composable
 fun MenuScreen(

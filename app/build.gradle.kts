@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.panguproject"
+    namespace = "com.vguillet.panguproject"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.panguproject"
+        applicationId = "com.vguillet.panguproject"
         minSdk = 29
         targetSdk = 34
         versionCode = 1

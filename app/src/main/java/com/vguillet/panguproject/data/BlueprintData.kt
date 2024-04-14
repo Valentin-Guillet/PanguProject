@@ -1,8 +1,8 @@
-package com.example.panguproject.data
+package com.vguillet.panguproject.data
 
-import com.example.panguproject.model.Blueprint
-import com.example.panguproject.model.BlueprintId
-import com.example.panguproject.model.Dice
+import com.vguillet.panguproject.model.Blueprint
+import com.vguillet.panguproject.model.BlueprintId
+import com.vguillet.panguproject.model.Dice
 
 
 private var blueprintId: BlueprintId = 0

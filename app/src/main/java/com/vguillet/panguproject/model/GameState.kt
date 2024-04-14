@@ -1,4 +1,4 @@
-package com.example.panguproject.model
+package com.vguillet.panguproject.model
 
 import kotlinx.serialization.Serializable
 

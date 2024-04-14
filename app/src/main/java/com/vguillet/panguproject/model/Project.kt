@@ -1,6 +1,6 @@
-package com.example.panguproject.model
+package com.vguillet.panguproject.model
 
-import com.example.panguproject.GameViewModel
+import com.vguillet.panguproject.GameViewModel
 import kotlinx.serialization.Serializable
 
 

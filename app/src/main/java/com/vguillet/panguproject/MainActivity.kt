@@ -1,4 +1,4 @@
-package com.example.panguproject
+package com.vguillet.panguproject
 
 import android.content.Context
 import android.os.Bundle
@@ -13,10 +13,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.panguproject.data.GameStateStorage
-import com.example.panguproject.ui.GameScreen
-import com.example.panguproject.ui.MenuScreen
-import com.example.panguproject.ui.theme.PanguProjectTheme
+import com.vguillet.panguproject.data.GameStateStorage
+import com.vguillet.panguproject.ui.GameScreen
+import com.vguillet.panguproject.ui.MenuScreen
+import com.vguillet.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
 - make an icon

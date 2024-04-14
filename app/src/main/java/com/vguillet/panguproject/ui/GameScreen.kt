@@ -1,4 +1,4 @@
-package com.example.panguproject.ui
+package com.vguillet.panguproject.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -66,30 +66,30 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.panguproject.GameViewModel
-import com.example.panguproject.R
-import com.example.panguproject.data.GameStateStorage
-import com.example.panguproject.data.allBlueprintsList
-import com.example.panguproject.data.allProjectsList
-import com.example.panguproject.model.Blueprint
-import com.example.panguproject.model.BlueprintStatus
-import com.example.panguproject.model.DetailCard
-import com.example.panguproject.model.Dice
-import com.example.panguproject.model.GameState
-import com.example.panguproject.model.Project
-import com.example.panguproject.model.ProjectStatus
-import com.example.panguproject.ui.theme.BackgroundColor
-import com.example.panguproject.ui.theme.BaseDiceColor
-import com.example.panguproject.ui.theme.ButtonColor
-import com.example.panguproject.ui.theme.EcruWhite
-import com.example.panguproject.ui.theme.FixedDiceColor
-import com.example.panguproject.ui.theme.PinkRed
-import com.example.panguproject.ui.theme.SectionBackgroundColor
-import com.example.panguproject.ui.theme.SectionTextColor
-import com.example.panguproject.ui.theme.SelectedDiceBorderColor
-import com.example.panguproject.ui.theme.SpaceBlue
-import com.example.panguproject.ui.theme.UsableCardBorderColor
-import com.example.panguproject.ui.theme.WildDiceColor
+import com.vguillet.panguproject.GameViewModel
+import com.vguillet.panguproject.R
+import com.vguillet.panguproject.data.GameStateStorage
+import com.vguillet.panguproject.data.allBlueprintsList
+import com.vguillet.panguproject.data.allProjectsList
+import com.vguillet.panguproject.model.Blueprint
+import com.vguillet.panguproject.model.BlueprintStatus
+import com.vguillet.panguproject.model.DetailCard
+import com.vguillet.panguproject.model.Dice
+import com.vguillet.panguproject.model.GameState
+import com.vguillet.panguproject.model.Project
+import com.vguillet.panguproject.model.ProjectStatus
+import com.vguillet.panguproject.ui.theme.BackgroundColor
+import com.vguillet.panguproject.ui.theme.BaseDiceColor
+import com.vguillet.panguproject.ui.theme.ButtonColor
+import com.vguillet.panguproject.ui.theme.EcruWhite
+import com.vguillet.panguproject.ui.theme.FixedDiceColor
+import com.vguillet.panguproject.ui.theme.PinkRed
+import com.vguillet.panguproject.ui.theme.SectionBackgroundColor
+import com.vguillet.panguproject.ui.theme.SectionTextColor
+import com.vguillet.panguproject.ui.theme.SelectedDiceBorderColor
+import com.vguillet.panguproject.ui.theme.SpaceBlue
+import com.vguillet.panguproject.ui.theme.UsableCardBorderColor
+import com.vguillet.panguproject.ui.theme.WildDiceColor
 
 @ExperimentalMaterial3Api
 @Composable
@@ -239,14 +239,14 @@ fun GameProjectSection(
                     modifier = Modifier.weight(1f)
                 ) {
                     @Suppress("UNCHECKED_CAST") (DisplayCard(
-                        allProjectsList[it.id],
-                        !it.built,
-                        onProjectClick as (DetailCard) -> Unit,
-                        onProjectLongClick as (DetailCard) -> Unit,
-                        modifier = Modifier
-                            .alpha(if (it.built) 0.5f else 1f),
-                        subtext = allProjectsList[it.id].shortCostDescription,
-                    ))
+        allProjectsList[it.id],
+        !it.built,
+        onProjectClick as (DetailCard) -> Unit,
+        onProjectLongClick as (DetailCard) -> Unit,
+        modifier = Modifier
+            .alpha(if (it.built) 0.5f else 1f),
+        subtext = allProjectsList[it.id].shortCostDescription,
+    ))
 
                     if (it.built) {
                         Image(
@@ -289,16 +289,16 @@ fun GameBuildingSection(
                     repeat(nbCols) { colIndex ->
                         val blueprint = buildings[rowIndex * 3 + colIndex]
                         @Suppress("UNCHECKED_CAST") (DisplayCard(
-                            card = allBlueprintsList[blueprint.id],
-                            usable = blueprint.usable,
-                            onCardClick = onBlueprintClick as (DetailCard) -> Unit,
-                            onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
-                            modifier = Modifier
-                                .width(colWidth)
-                                .height(75.dp),
-                            subtext = allBlueprintsList[blueprint.id].shortEffectDescription,
-                            drawBorder = true,
-                        ))
+        card = allBlueprintsList[blueprint.id],
+        usable = blueprint.usable,
+        onCardClick = onBlueprintClick as (DetailCard) -> Unit,
+        onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
+        modifier = Modifier
+            .width(colWidth)
+            .height(75.dp),
+        subtext = allBlueprintsList[blueprint.id].shortEffectDescription,
+        drawBorder = true,
+    ))
                     }
                 }
             }
@@ -333,17 +333,17 @@ fun GameBlueprintSection(
                     repeat(nbCols) { colIndex ->
                         val blueprint = blueprints[rowIndex * 3 + colIndex]
                         @Suppress("UNCHECKED_CAST") (DisplayCard(
-                            card = allBlueprintsList[blueprint.id],
-                            usable = true,
-                            onCardClick = onBlueprintClick as (DetailCard) -> Unit,
-                            onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
-                            onCardDoubleClick = onBlueprintDoubleClick as (DetailCard) -> Unit,
-                            modifier = Modifier
-                                .width(colWidth)
-                                .height(75.dp),
-                            subtext = allBlueprintsList[blueprint.id].shortCostDescription,
-                            drawBorder = false,
-                        ))
+        card = allBlueprintsList[blueprint.id],
+        usable = true,
+        onCardClick = onBlueprintClick as (DetailCard) -> Unit,
+        onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
+        onCardDoubleClick = onBlueprintDoubleClick as (DetailCard) -> Unit,
+        modifier = Modifier
+            .width(colWidth)
+            .height(75.dp),
+        subtext = allBlueprintsList[blueprint.id].shortCostDescription,
+        drawBorder = false,
+    ))
                     }
                 }
             }

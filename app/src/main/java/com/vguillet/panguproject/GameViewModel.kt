@@ -1,16 +1,16 @@
-package com.example.panguproject
+package com.vguillet.panguproject
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.panguproject.data.GameStateStorage
-import com.example.panguproject.model.Blueprint
-import com.example.panguproject.model.Dice
-import com.example.panguproject.model.Project
-import com.example.panguproject.data.allBlueprintsList
-import com.example.panguproject.data.allProjectsList
-import com.example.panguproject.model.BlueprintStatus
-import com.example.panguproject.model.GameState
-import com.example.panguproject.model.ProjectStatus
+import com.vguillet.panguproject.data.GameStateStorage
+import com.vguillet.panguproject.model.Blueprint
+import com.vguillet.panguproject.model.Dice
+import com.vguillet.panguproject.model.Project
+import com.vguillet.panguproject.data.allBlueprintsList
+import com.vguillet.panguproject.data.allProjectsList
+import com.vguillet.panguproject.model.BlueprintStatus
+import com.vguillet.panguproject.model.GameState
+import com.vguillet.panguproject.model.ProjectStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -1,4 +1,4 @@
-package com.example.panguproject.ui.theme
+package com.vguillet.panguproject.ui.theme
 
 import android.app.Activity
 import android.os.Build

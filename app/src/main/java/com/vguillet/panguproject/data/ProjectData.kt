@@ -1,8 +1,8 @@
-package com.example.panguproject.data
+package com.vguillet.panguproject.data
 
-import com.example.panguproject.model.Dice
-import com.example.panguproject.model.Project
-import com.example.panguproject.model.ProjectId
+import com.vguillet.panguproject.model.Dice
+import com.vguillet.panguproject.model.Project
+import com.vguillet.panguproject.model.ProjectId
 
 
 private var projectId: ProjectId = 0

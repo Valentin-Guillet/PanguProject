@@ -785,7 +785,9 @@ fun DisplayGameOver(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     Button(
-                        onClick = { navController?.navigate("menu") },
+                        onClick = { navController?.navigate("menu") {
+                            popUpTo("game") { inclusive = true }
+                        } },
                         modifier = Modifier
                             .height(60.dp)
                             .width(100.dp),

@@ -144,12 +144,9 @@ class GameViewModel(
         )
     }
 
-    fun selectDice(clickedDice: Dice, selectOnly: Boolean) {
+    fun selectDice(diceIndex: Int, selectOnly: Boolean) {
         _logMsg.value = ""
         var newDiceList = _gameState.value.diceList.toMutableList()
-        val diceIndex: Int = newDiceList.indexOfFirst { it === clickedDice }
-        if (diceIndex == -1)
-            return
         if (selectOnly)
             newDiceList = newDiceList.map { it.copy(selected = false) }.toMutableList()
         newDiceList[diceIndex] =

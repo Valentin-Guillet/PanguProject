@@ -354,9 +354,12 @@ fun GameBlueprintSection(
 @Composable
 fun GameResourceSection(
     diceList: List<Dice>,
-    onDiceClick: (Dice, Boolean) -> Unit,
+    onDiceClick: (Int, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val onClick = { dice: Dice, selectOnly: Boolean ->
+        onDiceClick(diceList.indexOfFirst { it === dice }, selectOnly)
+    }
     Row(
         modifier = modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -364,13 +367,13 @@ fun GameResourceSection(
         val (turnDiceList, storedDiceList) = diceList.partition { !it.stored }
         DiceStorage(
             diceList = turnDiceList,
-            onDiceClick = onDiceClick,
+            onDiceClick = onClick,
             name = "Resources",
             modifier = Modifier.weight(3f),
         )
         DiceStorage(
             diceList = storedDiceList,
-            onDiceClick = onDiceClick,
+            onDiceClick = onClick,
             name = "Storage",
             modifier = Modifier.weight(2f),
         )

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -614,7 +613,7 @@ fun DisplayCardInfo(
 }
 
 @Composable
-fun ColumnScope.DisplayDescriptionInfo(
+fun DisplayDescriptionInfo(
     descName: String,
     description: String,
     modifier: Modifier = Modifier,
@@ -622,7 +621,6 @@ fun ColumnScope.DisplayDescriptionInfo(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .align(Alignment.CenterHorizontally)
             .padding(horizontal = 16.dp)
             .background(color = SpaceBlue.copy(alpha = 0.15f), shape = RoundedCornerShape(16.dp)),
         horizontalAlignment = Alignment.CenterHorizontally,

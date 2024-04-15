@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -106,15 +107,27 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
         }
     }
 
+    val focusAlpha = if (displayCardInfoList != null) 0.5f else 1f
+    val onClose: (() -> Unit)? = if (displayCardInfoList != null) {
+        { displayCardInfoList = null; displayCardInfoIndex = 0 }
+    } else {
+        null
+    }
+    val interactionSource = remember { MutableInteractionSource() }
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .clickable(
+                onClick = { onClose?.invoke() },
+                interactionSource = interactionSource,
+                indication = null,
+            ),
         color = BackgroundColor,
     ) {
-        val focusAlpha = if (displayCardInfoList != null) 0.5f else 1f
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 4.dp),
+                .padding(horizontal = 4.dp)
+                .alpha(focusAlpha),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             GameInfoSection(
@@ -131,9 +144,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                         gameState.projectStatusList
                             .map { projectStatus -> allProjectsList[projectStatus.id] })(it)
                 },
-                modifier = Modifier
-                    .weight(0.9f)
-                    .alpha(focusAlpha),
+                modifier = Modifier.weight(0.9f),
             )
             GameBuildingSection(
                 gameState.buildingStatusList,
@@ -143,9 +154,7 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                         gameState.buildingStatusList
                             .map { buildingStatus -> allBlueprintsList[buildingStatus.id] })(it)
                 },
-                modifier = Modifier
-                    .weight(2f)
-                    .alpha(focusAlpha),
+                modifier = Modifier.weight(2f),
             )
             GameBlueprintSection(
                 gameState.blueprintStatusList,
@@ -156,16 +165,12 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                             .map { blueprintStatus -> allBlueprintsList[blueprintStatus.id] })(it)
                 },
                 onBlueprintDoubleClick = gameViewModel::discardBlueprint,
-                modifier = Modifier
-                    .weight(2f)
-                    .alpha(focusAlpha),
+                modifier = Modifier.weight(2f),
             )
             GameResourceSection(
                 gameState.diceList,
                 onDiceClick = gameViewModel::selectDice,
-                modifier = Modifier
-                    .weight(1f)
-                    .alpha(focusAlpha),
+                modifier = Modifier.weight(1f),
             )
             GameActionSection(
                 nbRerolls = gameState.nbRerolls,
@@ -174,7 +179,6 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
                 onModMinus = gameViewModel::decreaseDiceValue,
                 onModPlus = gameViewModel::increaseDiceValue,
                 onEndTurn = gameViewModel::nextTurn,
-                modifier = Modifier.alpha(focusAlpha),
             )
         }
 
@@ -191,7 +195,6 @@ fun GameScreen(navController: NavController?, gameViewModel: GameViewModel = vie
             CardSlider(
                 cards = displayCardInfoList!!,
                 index = displayCardInfoIndex,
-                onCardClick = { displayCardInfoList = null; displayCardInfoIndex = 0 },
             )
         }
     }
@@ -553,7 +556,6 @@ fun DisplayCard(
 fun CardSlider(
     cards: List<DetailCard>,
     index: Int,
-    onCardClick: (DetailCard) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val state = rememberPagerState(
@@ -563,7 +565,6 @@ fun CardSlider(
     HorizontalPager(state = state) { cardId ->
         DisplayCardInfo(
             card = cards[cardId],
-            onClick = onCardClick,
             modifier = modifier
         )
     }
@@ -573,11 +574,9 @@ fun CardSlider(
 @Composable
 fun DisplayCardInfo(
     card: DetailCard,
-    onClick: (DetailCard) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
-        onClick = { onClick(card) },
         modifier = modifier
             .fillMaxWidth()
             .fillMaxHeight(0.66f)

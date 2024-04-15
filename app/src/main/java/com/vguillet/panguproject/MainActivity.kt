@@ -19,7 +19,6 @@ import com.vguillet.panguproject.ui.MenuScreen
 import com.vguillet.panguproject.ui.theme.PanguProjectTheme
 
 /* TODO:
-- make an icon
 - add statistics
 */
 

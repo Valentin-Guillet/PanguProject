@@ -297,13 +297,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         effectDescription = "On click: equalize the value of two selected dice.",
         shortEffectDescription = "Click: 2 dice →\nequalize",
         costFunction = { Dice.sumsTo(16)(it.getSelectedDice()) },
-        clickCostFunction = { it.size == 2 && it.none { dice -> dice.fixed || dice.wild } },
-        onClick = {
-            val value = it.getSelectedDice().sumOf { dice -> dice.value }
-            it.consumeDice()
-            it.rollDice((value + 1) / 2)
-            it.rollDice(value / 2)
-        }
+        clickCostFunction = { it.size == 2 },
+        onClick = { it.equalizeDice() },
     ),
     Blueprint(
         blueprintId++,

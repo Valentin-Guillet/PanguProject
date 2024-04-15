@@ -45,10 +45,10 @@ class GameViewModel(
     fun newGame() {
         _gameState.value = GameState()
         val newProjectList =
-            allProjectsList.indices.shuffled().take(3).map { ProjectStatus(it, false) }
+            allProjectsList.shuffled().take(3).map { ProjectStatus(it.id, false) }
                 .toMutableList()
         val newBuildingList =
-            allBlueprintsList.filter { it.isDefault }.indices.map { BlueprintStatus(it, false) }
+            allBlueprintsList.filter { it.isDefault }.map { BlueprintStatus(it.id, false) }
                 .toMutableList()
         val newBlueprintList = List(initNbBlueprints) { getNextBlueprint() }
         _gameState.value = _gameState.value.copy(
@@ -180,6 +180,18 @@ class GameViewModel(
         if (useReroll)
             _gameState.value = _gameState.value.copy(nbRerolls = _gameState.value.nbRerolls - 1)
         saveState()
+    }
+
+    fun equalizeDice() {
+        val sumValue = getSelectedDice().sumOf { it.value }
+        val newDiceList = _gameState.value.diceList.toMutableList()
+        val selectedIndices =
+            newDiceList.mapIndexedNotNull { index, dice -> index.takeIf { dice.selected } }
+        newDiceList[selectedIndices[0]] =
+            newDiceList[selectedIndices[0]].copy(value = (sumValue + 1) / 2, selected = false)
+        newDiceList[selectedIndices[1]] =
+            newDiceList[selectedIndices[1]].copy(value = sumValue / 2, selected = false)
+        _gameState.value = _gameState.value.copy(diceList = newDiceList)
     }
 
     fun buildProject(project: Project) {

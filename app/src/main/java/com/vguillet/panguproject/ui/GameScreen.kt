@@ -239,14 +239,14 @@ fun GameProjectSection(
                     modifier = Modifier.weight(1f)
                 ) {
                     @Suppress("UNCHECKED_CAST") (DisplayCard(
-        allProjectsList[it.id],
-        !it.built,
-        onProjectClick as (DetailCard) -> Unit,
-        onProjectLongClick as (DetailCard) -> Unit,
-        modifier = Modifier
-            .alpha(if (it.built) 0.5f else 1f),
-        subtext = allProjectsList[it.id].shortCostDescription,
-    ))
+                        allProjectsList[it.id],
+                        !it.built,
+                        onProjectClick as (DetailCard) -> Unit,
+                        onProjectLongClick as (DetailCard) -> Unit,
+                        modifier = Modifier
+                            .alpha(if (it.built) 0.5f else 1f),
+                        subtext = allProjectsList[it.id].shortCostDescription,
+                    ))
 
                     if (it.built) {
                         Image(
@@ -289,16 +289,16 @@ fun GameBuildingSection(
                     repeat(nbCols) { colIndex ->
                         val blueprint = buildings[rowIndex * 3 + colIndex]
                         @Suppress("UNCHECKED_CAST") (DisplayCard(
-        card = allBlueprintsList[blueprint.id],
-        usable = blueprint.usable,
-        onCardClick = onBlueprintClick as (DetailCard) -> Unit,
-        onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
-        modifier = Modifier
-            .width(colWidth)
-            .height(75.dp),
-        subtext = allBlueprintsList[blueprint.id].shortEffectDescription,
-        drawBorder = true,
-    ))
+                            card = allBlueprintsList[blueprint.id],
+                            usable = blueprint.usable,
+                            onCardClick = onBlueprintClick as (DetailCard) -> Unit,
+                            onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
+                            modifier = Modifier
+                                .width(colWidth)
+                                .height(75.dp),
+                            subtext = allBlueprintsList[blueprint.id].shortEffectDescription,
+                            drawBorder = true,
+                        ))
                     }
                 }
             }
@@ -333,17 +333,17 @@ fun GameBlueprintSection(
                     repeat(nbCols) { colIndex ->
                         val blueprint = blueprints[rowIndex * 3 + colIndex]
                         @Suppress("UNCHECKED_CAST") (DisplayCard(
-        card = allBlueprintsList[blueprint.id],
-        usable = true,
-        onCardClick = onBlueprintClick as (DetailCard) -> Unit,
-        onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
-        onCardDoubleClick = onBlueprintDoubleClick as (DetailCard) -> Unit,
-        modifier = Modifier
-            .width(colWidth)
-            .height(75.dp),
-        subtext = allBlueprintsList[blueprint.id].shortCostDescription,
-        drawBorder = false,
-    ))
+                            card = allBlueprintsList[blueprint.id],
+                            usable = true,
+                            onCardClick = onBlueprintClick as (DetailCard) -> Unit,
+                            onCardLongClick = onBlueprintLongClick as (DetailCard) -> Unit,
+                            onCardDoubleClick = onBlueprintDoubleClick as (DetailCard) -> Unit,
+                            modifier = Modifier
+                                .width(colWidth)
+                                .height(75.dp),
+                            subtext = allBlueprintsList[blueprint.id].shortCostDescription,
+                            drawBorder = false,
+                        ))
                     }
                 }
             }
@@ -604,7 +604,7 @@ fun DisplayCardInfo(
         if (card.effectDescription != null) {
             DisplayDescriptionInfo(
                 descName = "Effect",
-                description = card.effectDescription
+                description = card.effectDescription,
             )
         }
     }
@@ -622,7 +622,6 @@ fun ColumnScope.DisplayDescriptionInfo(
             .align(Alignment.CenterHorizontally)
             .padding(horizontal = 16.dp)
             .background(color = SpaceBlue.copy(alpha = 0.15f), shape = RoundedCornerShape(16.dp)),
-//            .border(color = PinkRed, width = 2.dp, shape = RoundedCornerShape(16.dp)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -785,9 +784,11 @@ fun DisplayGameOver(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                 ) {
                     Button(
-                        onClick = { navController?.navigate("menu") {
-                            popUpTo("game") { inclusive = true }
-                        } },
+                        onClick = {
+                            navController?.navigate("menu") {
+                                popUpTo("game") { inclusive = true }
+                            }
+                        },
                         modifier = Modifier
                             .height(60.dp)
                             .width(100.dp),

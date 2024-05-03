@@ -285,8 +285,8 @@ val allBlueprintsList: List<Blueprint> = listOf(
         onClick = {
             val value = it.getSelectedDice()[0].value
             it.consumeDice()
-            it.rollDice(value - 1)
-            it.rollDice(value + 1)
+            it.rollDice(value - 1, fixed = true)
+            it.rollDice(value + 1, fixed = true)
         },
     ),
     Blueprint(

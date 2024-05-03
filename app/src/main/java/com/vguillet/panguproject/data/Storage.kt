@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.vguillet.panguproject.model.GameState
@@ -20,6 +21,9 @@ class GameStateStorage(context: Context) {
 
     @Suppress("PrivatePropertyName")
     private val SAVED_STATE = stringPreferencesKey("saved_state")
+
+    @Suppress("PrivatePropertyName")
+    private val BEST_SCORE = intPreferencesKey("best_score")
 
     suspend fun clearState() {
         dataStore.edit { storage ->
@@ -47,5 +51,20 @@ class GameStateStorage(context: Context) {
             dataStore.data.map { it[SAVED_STATE] }.first()
         }
         return serializedGameState?.let { Json.decodeFromString(GameState.serializer(), it) }
+    }
+
+    fun getBestScore(): Int? {
+        return runBlocking {
+            dataStore.data.map { it[BEST_SCORE] }.first()
+        }
+    }
+
+    suspend fun saveBestScore(score: Int) {
+        val savedScore = getBestScore() ?: 0
+        if (score <= savedScore) return
+
+        dataStore.edit { storage ->
+            storage[BEST_SCORE] = score
+        }
     }
 }

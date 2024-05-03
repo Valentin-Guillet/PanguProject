@@ -64,8 +64,12 @@ class GameViewModel(
 
     fun nextTurn() {
         if (gameState.value.turn == 10) {
+            val score = _gameState.value.score
             _gameState.value = _gameState.value.copy(gameOver = true)
-            viewModelScope.launch { gameStateStorage.clearState() }
+            viewModelScope.launch {
+                gameStateStorage.clearState()
+                gameStateStorage.saveBestScore(score)
+            }
             return
         }
 
@@ -227,7 +231,11 @@ class GameViewModel(
         if (!gameOver) {
             saveState()
         } else {
-            viewModelScope.launch { gameStateStorage.clearState() }
+            val score = _gameState.value.score
+            viewModelScope.launch {
+                gameStateStorage.clearState()
+                gameStateStorage.saveBestScore(score)
+            }
         }
     }
 

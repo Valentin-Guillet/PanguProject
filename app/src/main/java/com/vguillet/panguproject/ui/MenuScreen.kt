@@ -77,6 +77,19 @@ fun MenuScreen(
                 )
             }
         }
+
+        val bestScore = gameViewModel?.gameStateStorage?.getBestScore()
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Best score : ${bestScore?.toString() ?: " - "} ",
+                fontSize = 20.sp,
+                color = EcruWhite,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 

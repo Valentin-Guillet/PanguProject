@@ -187,7 +187,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three even\nand all even",
         effectDescription = "On start of turn: gain a fixed die of even value.",
         shortEffectDescription = "Start of turn:\ngain a fixed even",
-        costFunction = { it.getSelectedDice().size == 3 && it.gameState.value.diceList.all { dice -> dice.value % 2 == 0 } },
+        costFunction = { it.getSelectedDice().size == 3 && it.gameState.value.diceList.all { dice -> dice.wild || dice.value % 2 == 0 } },
         onStartTurn = { it.rollDice(2 * (1..3).random(), fixed = true) },
     ),
     Blueprint(
@@ -197,7 +197,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortCostDescription = "Three odd\nand all odd",
         effectDescription = "On start of turn: gain a fixed die of odd value.",
         shortEffectDescription = "Start of turn:\ngain a fixed odd",
-        costFunction = { it.getSelectedDice().size == 3 && it.gameState.value.diceList.all { dice -> dice.value % 2 == 1 } },
+        costFunction = { it.getSelectedDice().size == 3 && it.gameState.value.diceList.all { dice -> dice.wild || dice.value % 2 == 1 } },
         onStartTurn = { it.rollDice(2 * (0..2).random() + 1, fixed = true) },
     ),
     Blueprint(

@@ -61,7 +61,8 @@ val allProjectsList: List<Project> = listOf(
         costFunction = {
             val selectedDice = it.getSelectedDice()
             val count = selectedDice.size + selectedDice.filter { dice -> dice.stored }.size
-            count == 10 && selectedDice.map { dice -> dice.value % 2 }.toSet().size == 1
+            val nonWild = selectedDice.filter { dice -> !dice.wild }
+            count == 10 && nonWild.map { dice -> dice.value % 2 }.toSet().size == 1
         },
     ),
     Project(

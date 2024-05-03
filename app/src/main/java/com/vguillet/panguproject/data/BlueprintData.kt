@@ -53,7 +53,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of a kind.",
         shortCostDescription = "Three of a kind",
         effectDescription = "When built: gain a stored wild die.\nOn end of turn: gain a stored wild die if no buildings were purchased this turn.",
-        shortEffectDescription = "EOT: +1 stored wild\nif no card built",
+        shortEffectDescription = "EOT: +1 st. wild\nif no card built",
         costFunction = { Dice.isOfAKind(3)(it.getSelectedDice()) },
         onBuy = { it.rollDice(wild = true, stored = true) },
         onStartTurn = {

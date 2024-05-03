@@ -121,6 +121,15 @@ class GameViewModel(
         modifySelectedDice(1)
     }
 
+    fun flipSelectedDice() {
+        val dice = getSelectedDice()[0]
+        val newDiceList = _gameState.value.diceList.toMutableList()
+        val diceIndex = newDiceList.indexOfFirst { it === dice }
+        newDiceList[diceIndex] = dice.copy(value = 7 - dice.value)
+
+        _gameState.value = _gameState.value.copy(diceList = newDiceList)
+    }
+
     fun gainMod(delta: Int) {
         _logMsg.value = ""
         _gameState.value = _gameState.value.copy(

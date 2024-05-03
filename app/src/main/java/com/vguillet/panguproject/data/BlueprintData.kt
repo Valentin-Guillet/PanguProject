@@ -110,9 +110,9 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costFunction = { Dice.isSet(listOf(1, 3, 5))(it.getSelectedDice()) },
         clickCostFunction = { it.size == 1 },
         onClick = { gameViewModel ->
-            val dice = gameViewModel.getSelectedDice().first()
+            val value = gameViewModel.getSelectedDice()[0].value
             gameViewModel.consumeDice()
-            gameViewModel.rollDice(dice.value, fixed = true, stored = true)
+            gameViewModel.rollDice(value, fixed = true, stored = true)
         }
     )
 } + listOf(
@@ -381,10 +381,6 @@ val allBlueprintsList: List<Blueprint> = listOf(
         shortEffectDescription = "Click: flip a die",
         costFunction = { Dice.isOfAKindInARow(2, 2)(it.getSelectedDice()) },
         clickCostFunction = { it.size == 1 && !it[0].wild },
-        onClick = {
-            val value = it.getSelectedDice()[0].value
-            it.consumeDice()
-            it.rollDice(7 - value)
-        },
+        onClick = { it.flipSelectedDice() },
     ),
 )

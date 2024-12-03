@@ -844,7 +844,7 @@ fun UpdateViewConfiguration(
 }
 
 @ExperimentalMaterial3Api
-@Preview(device = "id:S9+")
+@Preview(device = "id:S20 FE")
 @Composable
 fun GameScreenPreview() {
     val context = LocalContext.current

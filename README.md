@@ -4,6 +4,10 @@
 This repository reimplements the dice game [PanguProject](https://artless.itch.io/pangu) from Artless Games to make it playable on Android.
 Some of the Blueprint names have been changed in order to fit the screen, but the rest should be identical to the original game.
 
+<p align="center">
+  <img height="600" src="./PanguProject.jpg">
+</p>
+
 # Installation
 
 The app can be installed from the [APK file located at `app/release/app-release.apk`](./app/release/app-release.apk).

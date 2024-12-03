@@ -154,7 +154,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         "Fission",
         costDescription = "A set of dice that amounts to exactly 20.",
         shortCostDescription = "Sum = 20",
-        effectDescription = "On click: split a die into two dice.",
+        effectDescription = "On click: split a die into two fixed dice of half its value.",
         shortEffectDescription = "Click: a die →\ntwo dice w/ same",
         costFunction = { Dice.sumsTo(20)(it.getSelectedDice()) },
         clickCostFunction = { it.size == 1 && it[0].value > 1 },
@@ -365,7 +365,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
         costDescription = "Three dice of value 1, 2 and 3.",
         shortCostDescription = "1, 2, 3",
         effectDescription = "On start of turn: roll one extra basic die per project built.",
-        shortEffectDescription = "Start of turn:\n+1 die /-> project",
+        shortEffectDescription = "Start of turn:\n+1 die / project",
         costFunction = { Dice.isSet(listOf(1, 2, 3))(it.getSelectedDice()) },
         onStartTurn = {
             val n = it.gameState.value.projectStatusList.count { project -> project.built }
@@ -375,7 +375,7 @@ val allBlueprintsList: List<Blueprint> = listOf(
     Blueprint(
         blueprintId++,
         "Tunneler",
-        costDescription = "Two pairs of dice in a row.",
+        costDescription = "Two pairs of dice in a row.\nExample: 2, 2, 3, 3.",
         shortCostDescription = "Two pairs\nin a row",
         effectDescription = "On click: flip a selected dice to its opposite value (1 / 6, 2 / 5...).",
         shortEffectDescription = "Click: flip a die",
